@@ -3,8 +3,8 @@ import math as m
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Statevector
-from commons import debug
-from commons import simulate
+from .quantum_commons import debug
+from .quantum_commons import simulate
 
 
 def w_state(size: int):

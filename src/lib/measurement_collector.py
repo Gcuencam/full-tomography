@@ -1,11 +1,9 @@
 import itertools
 from enum import Enum
-
 import numpy as np
-
-from commons import debug
-from commons import simulate
-from w_state import w_state
+from .quantum_commons import debug
+from .quantum_commons import simulate
+from .w_state import w_state
 
 
 class PauliBasis(Enum):
@@ -29,7 +27,9 @@ def collect_measurements(qc_size):
         debug(w_qc, counts, '')
 
     print(measurements)
-    np.savetxt('measurements.txt', measurements, fmt=' %s', newline=',')
+    filename = 'measurements.txt'
+    print('Saving to ' + filename)
+    np.savetxt(filename, measurements, fmt='%s,', newline='', header='[', footer=']', comments='')
 
 
 def measure(qc, measurement_schema):

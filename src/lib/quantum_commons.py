@@ -7,6 +7,7 @@ def simulate(qc, shots):
     compiled_circuit = transpile(qc, simulator)
     return simulator.run(compiled_circuit, shots=shots)
 
+
 def debug(qc, counts, probs):
     print(qc)
     print(counts)
