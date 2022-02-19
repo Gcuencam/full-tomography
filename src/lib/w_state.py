@@ -15,13 +15,15 @@ def w_state(n: int):
     else:
         circuit.ry(2 * np.arccos(1 / m.sqrt(n)), 0)
 
-        for i in range(1, n - 2):
-            circuit.cry(2 * np.arccos(1 / m.sqrt(n - i)), i - 1, i)
+        for target_qubit in range(1, n - 2):
+            control_qubit = target_qubit - 1
+            circuit.cry(2 * np.arccos(1 / m.sqrt(n - target_qubit)), control_qubit, target_qubit)
 
         circuit.ch(n - 3, n - 2)
 
-    for i in range(n - 1, 0, -1):
-        circuit.cx(i - 1, i)
+    for target_qubit in range(n - 1, 0, -1):
+        control_qubit = target_qubit - 1
+        circuit.cx(control_qubit, target_qubit)
 
     circuit.x(0)
     return circuit
@@ -47,20 +49,20 @@ def testWState():
     qc_size = 4
     w_state_initial_qubit_position = 1
     w_state_size = 3
-    composed_qc = compose_w_state(QuantumCircuit(qc_size, qc_size), w_state_initial_qubit_position, w_state_size)
+    qc = compose_w_state(QuantumCircuit(qc_size, qc_size), w_state_initial_qubit_position, w_state_size)
 
-    psi = Statevector.from_instruction(composed_qc)
+    psi = Statevector.from_instruction(qc)
     probs = psi.probabilities_dict()
 
-    measure(composed_qc)
+    measure(qc)
 
-    compiled_circuit = transpile(composed_qc, simulator)
-    shots = 10
+    compiled_circuit = transpile(qc, simulator)
+    shots = 1000
     job = simulator.run(compiled_circuit, shots=shots)
 
     counts = job.result().get_counts()
 
-    print(composed_qc)
+    print(qc)
     print(counts)
     print('probs: {}'.format(probs))
     assert len(probs) == w_state_size

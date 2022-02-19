@@ -5,7 +5,7 @@ from qiskit.providers.aer import QasmSimulator
 from qiskit.visualization import plot_histogram
 from qiskit.quantum_info import Statevector
 
-from src.lib.wState import buildWState
+from src.lib.w_state import compose_w_state
 
 
 def main():
@@ -16,12 +16,12 @@ def main():
     # Create a Quantum Circuit acting on the q register
     q = 5
     circuit = QuantumCircuit(q, q)
-    circuit = buildWState(circuit, 0, 2)
+    circuit = compose_w_state(circuit, 0, 2)
 
     psi = Statevector.from_instruction(circuit)
     # Probabilities for measuring qubits
     probs = psi.probabilities_dict()
-    print('probs: {}'.format(probs))
+
 
     # Compile the circuit down to low-level QASM instructions
     # supported by the backend
@@ -35,6 +35,8 @@ def main():
 
     # Draw the circuit
     circuit.draw()
+    print(circuit)
+    print('probs: {}'.format(probs))
 
 
 if __name__ == '__main__':
