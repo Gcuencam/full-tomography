@@ -16,7 +16,7 @@ class PauliBasis(Enum):
 
 def collect_measurements(qc_size):
     basis = getCartesianPauliBasis(qc_size)
-    result = np.empty(0)
+    measurements = np.empty(0)
 
     for measurement_schema in basis:
         w_qc = w_state(qc_size)
@@ -25,10 +25,11 @@ def collect_measurements(qc_size):
         job = simulate(w_qc, shots)
         counts = job.result().get_counts()
 
-        result = np.append(result, list(counts))
+        measurements = np.append(measurements, list(counts))
         debug(w_qc, counts, '')
 
-    print(result)
+    print(measurements)
+    np.savetxt('measurements.txt', measurements, fmt=' %s', newline=',')
 
 
 def measure(qc, measurement_schema):
