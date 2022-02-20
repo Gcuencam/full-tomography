@@ -3,7 +3,7 @@ import math as m
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Statevector
-from .quantum_commons import debug
+from .quantum_commons import debug_circuit
 from .quantum_commons import simulate
 
 
@@ -57,7 +57,7 @@ def testWState(qc_size):
 
     counts = job.result().get_counts()
 
-    debug(qc, counts, probs)
+    debug_circuit(qc, counts, probs)
     assert len(probs) == w_state_size
     offset = 0.02
     upper_bound = (shots / w_state_size / shots) + offset

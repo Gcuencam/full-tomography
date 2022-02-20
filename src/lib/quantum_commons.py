@@ -1,3 +1,5 @@
+import os
+
 from qiskit import transpile
 from qiskit.providers.aer import QasmSimulator
 
@@ -8,7 +10,14 @@ def simulate(qc, shots):
     return simulator.run(compiled_circuit, shots=shots)
 
 
-def debug(qc, counts, probs):
+def debug_circuit(qc, counts, probs):
     print(qc)
     print(counts)
     print('probs: {}'.format(probs))
+
+
+def isDebugEnabled():
+    if "DEBUG" in os.environ:
+        return os.environ['DEBUG'] == 'True'
+    else:
+        return False

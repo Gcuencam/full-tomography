@@ -13,7 +13,11 @@ pip install -r requirements.txt
 
 ## How to run the code
 ```shell
-python3 index.py
+# -s is the number of shots that each circuit will be executed
+# -q is the size of the circuits in qbits
+# -o is the output filename
+# -d is to enable debug mode
+python3 index.py -s 10 -q 4 -o test.txt -d
 ```
 
 #### Other possible issues

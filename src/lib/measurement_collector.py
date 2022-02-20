@@ -1,7 +1,7 @@
 import itertools
 from enum import Enum
 import numpy as np
-from .quantum_commons import debug
+from .quantum_commons import debug_circuit, isDebugEnabled
 from .quantum_commons import simulate
 from .w_state import w_state
 
@@ -12,24 +12,24 @@ class PauliBasis(Enum):
     Z = 'Z'
 
 
-def collect_measurements(qc_size):
+def collect_measurements(qc_size, shots, output_filename):
     basis = getCartesianPauliBasis(qc_size)
     measurements = np.empty(0)
 
     for measurement_schema in basis:
         w_qc = w_state(qc_size)
         measure(w_qc, measurement_schema)
-        shots = 1
         job = simulate(w_qc, shots)
         counts = job.result().get_counts()
 
         measurements = np.append(measurements, list(counts))
-        debug(w_qc, counts, '')
+        if isDebugEnabled():
+            debug_circuit(w_qc, counts, '')
 
-    print(measurements)
-    filename = 'measurements.txt'
-    print('Saving to ' + filename)
-    np.savetxt(filename, measurements, fmt='%s,', newline='', header='[', footer=']', comments='')
+    if isDebugEnabled():
+        print(measurements)
+    print('Saving to ' + output_filename)
+    np.savetxt(output_filename, measurements, fmt='%s,', newline='', header='[', footer=']', comments='')
 
 
 def measure(qc, measurement_schema):
@@ -73,9 +73,10 @@ def getCartesianPauliBasis(qc_size):
 
 
 def debugMeasurement(measurement):
-    print(measurement)
+    if isDebugEnabled():
+        print(measurement)
 
 
 if __name__ == '__main__':
     qc_size = 3
-    collect_measurements(qc_size)
+    collect_measurements(qc_size, 1, 'test.txt')
