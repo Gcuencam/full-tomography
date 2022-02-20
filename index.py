@@ -1,41 +1,36 @@
-import math as m
-import numpy as np
-from qiskit import QuantumCircuit, transpile
-from qiskit.providers.aer import QasmSimulator
-from qiskit.visualization import plot_histogram
-from qiskit.quantum_info import Statevector
+import getopt
+import os
+import sys
 
-from src.lib.wState import buildWState
+from src.lib.measurement_collector import collect_measurements
+
+os.environ['DEBUG'] = 'False'
 
 
-def main():
+def main(argv):
+    shots = 0
+    qc_size = 0
+    output_file_name = 'measurements.txt'
+    try:
+        opts, args = getopt.getopt(argv, "dhs:q:o:", ["shots=", "qubits=", "output="])
+    except getopt.GetoptError:
+        print('test.py -s <shoots_number> -q <qubits_number> -o <filename>-d')
+        sys.exit(2)
 
-    # Use Aer's qasm_simulator
-    simulator = QasmSimulator()
-
-    # Create a Quantum Circuit acting on the q register
-    q = 5
-    circuit = QuantumCircuit(q, q)
-    circuit = buildWState(circuit, 0, 2)
-
-    psi = Statevector.from_instruction(circuit)
-    # Probabilities for measuring qubits
-    probs = psi.probabilities_dict()
-    print('probs: {}'.format(probs))
-
-    # Compile the circuit down to low-level QASM instructions
-    # supported by the backend
-    compiled_circuit = transpile(circuit, simulator)
-
-    # Execute the circuit on the qasm simulator
-    job = simulator.run(compiled_circuit, shots=1000)
-
-    # Grab results from the job
-    results = job.result()
-
-    # Draw the circuit
-    circuit.draw()
+    for opt, arg in opts:
+        if opt == '-h':
+            print()
+            sys.exit()
+        elif opt in ("-s", "--shoots"):
+            shots = int(arg)
+        elif opt in ("-q", "--qubits"):
+            qc_size = int(arg)
+        elif opt in ("-d", "--debug"):
+            os.environ['DEBUG'] = 'True'
+        elif opt in ("-o", "--output"):
+            output_file_name = arg
+    collect_measurements(qc_size, shots, output_file_name)
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
