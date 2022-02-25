@@ -5,16 +5,17 @@ import numpy as np
 
 
 class RBM(object):
-    def __init__(self,nV,nH,learningRate):
+    def __init__(self,nV,nH):
         self._nV = nV
         self._nH = nH
-        self._learningRate = learningRate
+        
+        #Random initialization of the weight parameters.
         self._w = np.random.rand(self._nV,self._nH)
         self._b = np.random.rand(self._nH)
         self._c = np.random.rand(self._nV)
         
         
-        
+    #Computes the sigmoid function for all the neurons of the layer.    
     def sigmoid(self,X):
         l = len(X)
         out = np.zeros(l)
@@ -30,7 +31,7 @@ class RBM(object):
                 out[i] = sig
         return out
 
-
+    #Computes the activation function for all the neurons of the layer.
     def activ(self,X):
         l = len(X)
         out = np.zeros(l)
@@ -43,20 +44,23 @@ class RBM(object):
                 out[i] = 0
         return out
         
-    
+    #Runs the network forward. Given a configuration of the visible layer calculates
+    #the hidden layer one.
     def forward(self,v):
         p_hv = self._b + np.dot(v,self._w)
         s = self.sigmoid(p_hv)
         h = self.activ(s)
         return h
     
+    #Runs the network bakcward. Given a configuration of the hidden layer calculates
+    #the visible layer one.
     def backward(self,h):
         p_vh = self._c + np.dot(self._w,h)
         s = self.sigmoid(p_vh)
         v = self.activ(s)
         return v
     
-      
+    #Obtains the k sample of the visible and hidden layer.
     def gibbsSampling(self,v0,K):
         v = v0.copy()
         for k in range(K):
@@ -66,27 +70,44 @@ class RBM(object):
                 h0 = h.copy()
         vk = v.copy()
         hk = self.forward(vk)
+        
         return h0,vk,hk
+    
+    
+    def calculateGradients(self,v0,h0,vk,hk):
+        grad_w = np.outer(v0,h0)-np.outer(vk,hk) #positive gradient - negative gradient
+        grad_b = h0-hk
+        grad_c = v0-vk
+        return grad_w,grad_b,grad_c
              
-    def updateParams(self,v0,h0,vk,hk):
-        posGrad = np.outer(v0,h0)
-        negGrad = np.outer(vk,hk)
-        
-        self._w = self._w + self._learningRate * (posGrad-negGrad)
-        self._b = self._b + self._learningRate * (h0-hk)
-        self._c = self._c + self._learningRate * (v0-vk)
-        
+    #Updates the weights and the bias.
+    def updateParams(self,cumGrad_w,cumGrad_b,cumGrad_c,sBatch,learnRate):
+        sLearnRate = learnRate/sBatch #Adjusts the learning rate to the size of the batch.
+        self._w = self._w + sLearnRate * cumGrad_w
+        self._b = self._b + sLearnRate * cumGrad_b
+        self._c = self._c + sLearnRate * cumGrad_c
         return               
     
     
-    
-    def CD_K(self,dataset,epochs,K):
-        for i in range(epochs):
-            for sample in dataset:
-                [h0,vk,hk] = self.gibbsSampling(sample,K)
-                self.updateParams(sample,h0,vk,hk)
+    #Implements the CD_K training algorithm with a division of the
+    #dataset in mini-batches.
+    def CD_K(self,dataset,epochs,batch_size,K,learnRate):
+        for epoch in range(epochs):
+            for iBatch in range(0,len(dataset),batch_size):
+                mini_batch = dataset[iBatch:iBatch+batch_size]
+                cumGrad_w = np.zeros((self._nV,self._nH))
+                cumGrad_b = np.zeros(self._nH)
+                cumGrad_c = np.zeros(self._nV)
+                for data in mini_batch:
+                    [h0,vk,hk] = self.gibbsSampling(data,K)
+                    [grad_w,grad_b,grad_c] = self.calculateGradients(data,h0,vk,hk)
+                    cumGrad_w += grad_w
+                    cumGrad_b += grad_b
+                    cumGrad_c += grad_c
+                self.updateParams(cumGrad_w,cumGrad_b,cumGrad_c,len(mini_batch),learnRate)
         return
 
+    #Obtains a reconstruction of the input by running the network forward and backward. 
     def run(self,v,K):        
         for k in range(K):
             h = self.forward(v)
