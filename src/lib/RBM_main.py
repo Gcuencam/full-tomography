@@ -6,7 +6,7 @@ visible_layers = 3
 hidden_layers = 2
 learning_rate = 0.2
 epochs = 500
-batch_size = 1
+batch_size = 2
 k = 1 #Number of iterations of Gibbs Sampling.
 dataset = np.array([[0,1,0],[1,0,1],[0,1,0],[1,0,1],[0,1,0],[1,0,1],[0,1,0],[1,0,1],[0,1,0],[1,0,1]])
 
