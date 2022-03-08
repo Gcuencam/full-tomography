@@ -38,7 +38,7 @@ class RBM(object):
         for i in range(l):
             x = X[i]
             r = np.random.uniform()
-            if x>r:
+            if x>=r:
                 out[i] = 1
             else:
                 out[i] = 0
@@ -92,6 +92,7 @@ class RBM(object):
     #Implements the CD_K training algorithm with a division of the
     #dataset in mini-batches.
     def CD_K(self,dataset,epochs,batch_size,K,learnRate):
+        print('Training starts.')
         for epoch in range(epochs):
             for iBatch in range(0,len(dataset),batch_size):
                 mini_batch = dataset[iBatch:iBatch+batch_size]
@@ -105,6 +106,9 @@ class RBM(object):
                     cumGrad_b += grad_b
                     cumGrad_c += grad_c
                 self.updateParams(cumGrad_w,cumGrad_b,cumGrad_c,len(mini_batch),learnRate)
+            pc = (((epoch+1)/epochs)*100)
+            if pc%10 == 0:
+                print(str(int(pc)) + '% trained.')
         return
 
     #Obtains a reconstruction of the input by running the network forward and backward. 

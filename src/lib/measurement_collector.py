@@ -1,9 +1,16 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Feb 25 19:40:28 2022
+
+@author: Pedro
+"""
+
 import itertools
 from enum import Enum
 import numpy as np
-from .quantum_commons import debug_circuit, isDebugEnabled
-from .quantum_commons import simulate
-from .w_state import w_state
+from quantum_commons import debug_circuit, isDebugEnabled
+from quantum_commons import simulate
+from w_state import w_state
 
 
 class PauliBasis(Enum):
@@ -14,23 +21,33 @@ class PauliBasis(Enum):
 
 def collect_measurements(qc_size, shots, output_filename):
     basis = getCartesianPauliBasis(qc_size)
-    measurements = np.empty(0)
+    measurements = []
 
     for measurement_schema in basis:
         w_qc = w_state(qc_size)
         measure(w_qc, measurement_schema)
         job = simulate(w_qc, shots)
         counts = job.result().get_counts()
+        get_measurements(measurements, counts)
 
-        measurements = np.append(measurements, list(counts))
         if isDebugEnabled():
             debug_circuit(w_qc, counts, '')
-
+    measurements = np.array(measurements)
+    
     if isDebugEnabled():
         print(measurements)
     print('Saving to ' + output_filename)
-    np.savetxt(output_filename, measurements, fmt='%s,', newline='', header='[', footer=']', comments='')
+    np.savetxt(output_filename, measurements)
 
+def get_measurements(measurements, counts):
+    meas_out = list(counts.keys())
+    for meas in meas_out:
+        measurement = []
+        for bit in meas:
+            measurement.append(int(bit))
+        for i in range(counts[meas]):
+            measurements.append(measurement.copy())
+        
 
 def measure(qc, measurement_schema):
     for i in range(qc.num_qubits):
@@ -79,4 +96,4 @@ def debugMeasurement(measurement):
 
 if __name__ == '__main__':
     qc_size = 3
-    collect_measurements(qc_size, 1, 'test.txt')
+    collect_measurements(qc_size, 64, 'test.txt')
