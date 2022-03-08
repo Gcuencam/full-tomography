@@ -11,6 +11,11 @@ virtualenv venv
 pip install -r requirements.txt
 ```
 
+## How to activate virtual environment
+```sql
+source venv/bin/activate
+```
+
 ## How to run the code
 ```shell
 # -s is the number of shots that each circuit will be executed
