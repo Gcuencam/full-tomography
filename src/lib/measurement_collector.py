@@ -33,11 +33,12 @@ def collect_measurements(qc_size, shots, output_filename):
         if isDebugEnabled():
             debug_circuit(w_qc, counts, '')
     measurements = np.array(measurements)
-    
+
     if isDebugEnabled():
         print(measurements)
     print('Saving to ' + output_filename)
     np.savetxt(output_filename, measurements)
+
 
 def get_measurements(measurements, counts):
     meas_out = list(counts.keys())
@@ -47,7 +48,7 @@ def get_measurements(measurements, counts):
             measurement.append(int(bit))
         for i in range(counts[meas]):
             measurements.append(measurement.copy())
-        
+
 
 def measure(qc, measurement_schema):
     for i in range(qc.num_qubits):
