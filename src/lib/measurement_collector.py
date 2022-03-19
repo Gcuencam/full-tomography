@@ -10,6 +10,7 @@ from enum import Enum
 import numpy as np
 from quantum_commons import debug_circuit, isDebugEnabled
 from quantum_commons import simulate
+from src.lib.measurements.povm import measure_povm
 from w_state import w_state
 
 
@@ -25,7 +26,10 @@ def collect_measurements(qc_size, shots, output_filename):
 
     for measurement_schema in basis:
         w_qc = w_state(qc_size)
+        # Measure using pauli basis
         measure(w_qc, measurement_schema)
+        # Measure using tetrahedron povm
+        # measure_povm(w_qc)
         job = simulate(w_qc, shots)
         counts = job.result().get_counts()
         get_measurements(measurements, counts)
