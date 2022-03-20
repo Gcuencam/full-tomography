@@ -1,17 +1,12 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Feb 25 19:40:28 2022
-
-@author: Pedro
-"""
 
 import itertools
 from enum import Enum
 import numpy as np
-from quantum_commons import debug_circuit, isDebugEnabled
-from quantum_commons import simulate
-from src.lib.measurements.povm import measure_povm
-from w_state import w_state
+from .quantum_commons import debug_circuit, isDebugEnabled
+from .quantum_commons import simulate
+from .measurements.povm import measure_povm
+from .w_state import w_state
 
 
 class PauliBasis(Enum):
@@ -20,16 +15,13 @@ class PauliBasis(Enum):
     Z = 'Z'
 
 
-def collect_measurements(qc_size, shots, output_filename):
+def collect_pauli_measurements(qc_size, shots, output_filename):
     basis = getCartesianPauliBasis(qc_size)
     measurements = []
 
     for measurement_schema in basis:
         w_qc = w_state(qc_size)
-        # Measure using pauli basis
         measure(w_qc, measurement_schema)
-        # Measure using tetrahedron povm
-        # measure_povm(w_qc)
         job = simulate(w_qc, shots)
         counts = job.result().get_counts()
         get_measurements(measurements, counts)
@@ -41,6 +33,22 @@ def collect_measurements(qc_size, shots, output_filename):
     if isDebugEnabled():
         print(measurements)
     print('Saving to ' + output_filename)
+    np.savetxt(output_filename, measurements)
+
+
+def collect_povm_measurements(qc_size, shots, output_filename):
+    w_qc = w_state(qc_size)
+    measured_circuit = measure_povm(w_qc)
+    measurements = []
+    if isDebugEnabled():
+        print(measured_circuit)
+
+    job = simulate(measured_circuit, shots)
+    counts = job.result().get_counts()
+
+    get_measurements(measurements, counts)
+    if isDebugEnabled():
+        print(measurements)
     np.savetxt(output_filename, measurements)
 
 
@@ -101,4 +109,4 @@ def debugMeasurement(measurement):
 
 if __name__ == '__main__':
     qc_size = 3
-    collect_measurements(qc_size, 64, 'test.txt')
+    collect_pauli_measurements(qc_size, 64, 'test.txt')

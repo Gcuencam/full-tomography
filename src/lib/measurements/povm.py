@@ -38,9 +38,9 @@ def measure_povm(qc):
     size = qc.num_qubits
 
     expanded_circuit = QuantumCircuit(size * 2, size * 2)
-    expanded_circuit = expanded_circuit.compose(qc, [0, 1])
+    expanded_circuit = expanded_circuit.compose(qc, range(0, size))
 
-    expanded_circuit.barrier([0, 1, 2, 3])
+    expanded_circuit.barrier(range(0, size))
 
     for i in range(qc.num_qubits):
         expanded_circuit = measure_qubit(expanded_circuit, i, i + size)
