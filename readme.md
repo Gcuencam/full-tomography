@@ -22,7 +22,8 @@ source venv/bin/activate
 # -q is the size of the circuits in qbits
 # -o is the output filename
 # -d is to enable debug mode
-python3 index.py -s 10 -q 4 -o test.txt -d
+# -m measuremente type. pauli or povm
+python3 index.py -s 10 -q 4 -o test.txt -d -m [pauli | povm]
 ```
 
 #### Other possible issues
