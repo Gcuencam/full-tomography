@@ -84,7 +84,7 @@ def y_measurement(qc, qubit, cbit):
 
 # Helper functions
 def getCartesianPauliBasis(qc_size):
-    basis = [PauliBasis.X, PauliBasis.Y, PauliBasis.Z]
+    basis = [PauliBasis.Z]
     r = itertools.product(basis, repeat=qc_size)
     return np.array(list(r))
 
