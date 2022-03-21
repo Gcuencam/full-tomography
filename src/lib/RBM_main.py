@@ -11,9 +11,9 @@ batch_size = 10
 k = 1 #Number of iterations of Gibbs Sampling.
 m = 1728
 n = 3
-dataset_filename = 'test.txt'
+dataset_filename = 'training.npy'
 
-dataset = np.loadtxt(dataset_filename)
+dataset = np.load(dataset_filename)
 
 
 
