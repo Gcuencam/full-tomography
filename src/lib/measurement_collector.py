@@ -37,7 +37,7 @@ def collect_measurements(qc_size, shots, output_filename):
     if isDebugEnabled():
         print(measurements)
     print('Saving to ' + output_filename)
-    np.savetxt(output_filename, measurements)
+    np.save(output_filename, measurements)
 
 def get_measurements(measurements, counts):
     meas_out = list(counts.keys())
@@ -96,4 +96,4 @@ def debugMeasurement(measurement):
 
 if __name__ == '__main__':
     qc_size = 3
-    collect_measurements(qc_size, 64, 'test.txt')
+    collect_measurements(qc_size, 64, 'training.npy')
