@@ -11,8 +11,9 @@ batch_size = 10
 k = 1 #Number of iterations of Gibbs Sampling.
 dataset_filename = 'training.npy'
 
-
 dataset = np.load(dataset_filename)
+
+
 
 #Creates the network.
 rbm = RBM(visible_layers,hidden_layers)
@@ -26,4 +27,3 @@ print('Elapsed time:',time.time()-t)
 newData = [0,0,0]
 reconstruction = rbm.run(newData,k)
 print('Reconstruction of the new data:',reconstruction)
-

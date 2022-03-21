@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Feb 25 19:40:28 2022
-
-@author: Pedro
-"""
-
 import itertools
 from enum import Enum
 import numpy as np

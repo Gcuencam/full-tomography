@@ -9,11 +9,19 @@ class RBM(object):
         self._nV = nV
         self._nH = nH
         
-        #Random initialization of the weight parameters.
-        self._w = np.random.rand(self._nV,self._nH)
-        self._b = np.random.rand(self._nH)
-        self._c = np.random.rand(self._nV)
+        #Initialization at 0 of the weight parameters.
+        self._w = np.zeros((self._nV,self._nH))
+        self._b = np.zeros(self._nH)
+        self._c = np.zeros(self._nV)
         
+        
+    def getParams(self):
+        return self._w.copy(),self._b.copy(),self._c.copy()
+    
+    def setParams(self,w,b,c):
+        self._w = w.copy()
+        self._b = b.copy()
+        self._c = c.copy()
         
     #Computes the sigmoid function for all the neurons of the layer.    
     def sigmoid(self,X):
@@ -117,6 +125,3 @@ class RBM(object):
             h = self.forward(v)
             v = self.backward(h)
         return v
-
-
-
