@@ -4,18 +4,15 @@ from RBM import RBM
 import time
 
 visible_layers = 3
-hidden_layers = 2
-learning_rate = 0.2
-epochs = 1000
+hidden_layers = 3
+learning_rate = 0.1
+epochs = 100
 batch_size = 10
 k = 1 #Number of iterations of Gibbs Sampling.
-m = 1728
-n = 3
 dataset_filename = 'training.npy'
 
+
 dataset = np.load(dataset_filename)
-
-
 
 #Creates the network.
 rbm = RBM(visible_layers,hidden_layers)
