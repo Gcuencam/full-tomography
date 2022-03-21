@@ -38,7 +38,7 @@ class RBM(object):
         for i in range(l):
             x = X[i]
             r = np.random.uniform()
-            if x>=r:
+            if x>r:
                 out[i] = 1
             else:
                 out[i] = 0
