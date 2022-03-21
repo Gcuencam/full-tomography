@@ -9,10 +9,10 @@ learning_rate = 0.1
 epochs = 100
 batch_size = 10
 k = 1 #Number of iterations of Gibbs Sampling.
-dataset_filename = 'training.txt'
+dataset_filename = 'training.npy'
 
 
-dataset = np.loadtxt(dataset_filename)
+dataset = np.load(dataset_filename)
 
 #Creates the network.
 rbm = RBM(visible_layers,hidden_layers)
