@@ -96,4 +96,4 @@ def debugMeasurement(measurement):
 
 if __name__ == '__main__':
     qc_size = 3
-    collect_measurements(qc_size, 64, 'training.npy')
+    collect_measurements(qc_size, 100000, 'training.npy')
