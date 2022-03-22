@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Feb 25 19:42:48 2022
+
+@author: Pedro
+"""
+
 import os
 
 from qiskit import transpile
