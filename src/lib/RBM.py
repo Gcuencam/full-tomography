@@ -6,14 +6,14 @@ import numpy as np
 
 
 class RBM(object):
-    def __init__(self, nV, nH):
+    def __init__(self, nV, nH, w=None, b=None, c=None):
         self._nV = nV
         self._nH = nH
 
         # Initialization at 0 of the weight parameters.
-        self._w = np.zeros((self._nV, self._nH))
-        self._b = np.zeros(self._nH)
-        self._c = np.zeros(self._nV)
+        self._w = np.zeros((self._nV, self._nH)) if w is None else w
+        self._b = np.zeros(self._nH) if b is None else b
+        self._c = np.zeros(self._nV) if c is None else c
 
     def getParams(self):
         return self._w.copy(), self._b.copy(), self._c.copy()
@@ -130,7 +130,7 @@ class RBM(object):
                 print(str(int(pc)) + '% trained.')
         plt.plot(error_plot)
         plt.savefig('error.png')
-        return
+        return self._nV, self._nH, self._w, self._b, self._c
 
     # Obtains a reconstruction of the input by running the network forward and backward.
     def run(self, v, K):
