@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from ctypes import sizeof
+from matplotlib import pyplot as plt
 import math
 import numpy as np
 
@@ -99,6 +100,7 @@ class RBM(object):
     # dataset in mini-batches.
 
     def CD_K(self, dataset, epochs, batch_size, K, learnRate):
+        error_plot = []
         for epoch in range(epochs):
             error = 0
             for iBatch in range(0, len(dataset), batch_size):
@@ -115,6 +117,9 @@ class RBM(object):
                     error += np.sum((data - vs) ** 2) / dataset.size
                 self.updateParams(cumGrad_w, cumGrad_b, cumGrad_c, len(mini_batch), learnRate)
             print("Epoch %s: error is %s" % (epoch, error))
+            error_plot.append(error)
+        plt.plot(error_plot)
+        plt.savefig('error.png')
         return
 
     # Obtains a reconstruction of the input by running the network forward and backward.
