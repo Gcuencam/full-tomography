@@ -3,11 +3,9 @@ import numpy as np
 from RBM import RBM
 from configparser import ConfigParser
 
-k = 1  # Number of iterations of Gibbs Sampling.
-dataset_filename = 'src/lib/training.npy'
-network_file_path = 'src/lib/setup.ini'
 
-dataset = np.load(dataset_filename)
+network_file_path = 'setup5h.ini'
+
 
 config = ConfigParser()
 config.read(network_file_path)
@@ -25,7 +23,12 @@ w = np.asarray(_w)
 
 rbm = RBM(nV, nH, w, b, c)
 
-# Runs the network. This reconstructs the input sample.
-newData = [0, 0, 0]
-reconstruction = rbm.run(newData, k)
-print('Reconstruction of the new data:', reconstruction)
+
+# Overlap calculation.
+basisW = np.identity(nV) #Basis of the W state.
+basisGHZ = np.array([[0,0,0],[1,1,1]])
+n = 1000  # Number of iterations of the overlap's sampling.
+k = 5  # Number of iterations of Gibbs Sampling.
+
+o = rbm.Overlap(basisW, n, k)
+print('O^2 = ' + str(o))

@@ -62,10 +62,8 @@ class RBM(object):
 
     def backward(self, h):
         """Runs the network bakcward. Given a configuration of the hidden layer calculates the visible layer one.
-
         Args:
             h (numpy.ndarray): the state of a given hidden layer
-
         Returns:
             v (numpy.ndarray): stochastic value of the rebuilded visible layer
             s (numpy.ndarray): analytic value of the rebuilded visible layer
@@ -121,8 +119,9 @@ class RBM(object):
                     cumGrad_w += grad_w
                     cumGrad_b += grad_b
                     cumGrad_c += grad_c
-                    error += np.sum((data - vs) ** 2) / dataset.size
+                    error += np.sum((data - vs) ** 2)
                 self.updateParams(cumGrad_w, cumGrad_b, cumGrad_c, len(mini_batch), learnRate)
+            error = error / dataset.size
             print("Epoch %s: error is %s" % (epoch, error))
             error_plot.append(error)
             pc = (((epoch + 1) / epochs) * 100)
@@ -138,3 +137,55 @@ class RBM(object):
             h = self.forward(v)
             [v, s] = self.backward(h)
         return v
+    
+    # Obtains the 2^n possible basis.
+    def Basis(self, n):
+        m = 2**n
+        basis = []
+        for i in range(m):
+            vec = np.zeros(n)
+            strBin = format(i,"b")
+            length = len(strBin)
+            for j in range(length):
+                vec[n-1-j] = int(strBin[length-1-j])
+            basis.append(vec)
+        return basis
+    
+    # Calculates the amplitude represented by the network. (Formula 7 of Torlai's paper.)
+    def Amplitude(self, vec):
+        sumBias_v = np.dot(self._c,vec)
+        sum_i = 0
+        for i in range(self._nH):
+            sum_j = 0
+            for j in range(self._nV):
+                sum_j += self._w[j,i]*vec[j]
+            sum_i += math.log(1+math.exp(self._b[i]+sum_j))
+        amplitude = math.exp(sumBias_v + sum_i)
+        return amplitude
+    
+    # Calculates the squared overlap of the state represented by the network
+    # and the target state.
+    def Overlap(self, basisT, n, k_gs):
+        N = len(basisT)
+        basis = self.Basis(self._nV)
+
+        sum_n = 0
+        for j in range(n):
+            indRand = np.random.randint(2**self._nV)
+            sigma_j = self.run(basis[indRand].copy(),k_gs)
+            sum_N = 0
+            flag = False
+            k = 0
+            while k<N and flag==False:
+                if np.array_equal(sigma_j,basisT[k]):
+                    flag = True
+                    sum_N += 1/math.sqrt(N)
+                k += 1
+            if sum_N != 0:
+                sum_n += sum_N/math.sqrt(self.Amplitude(sigma_j.copy()))
+        overlap = sum_n/n    
+        sum_N = 0
+        for k in range(N):
+            sum_N += math.sqrt(self.Amplitude(basisT[k].copy())/N)
+        overlap = overlap*sum_N
+        return overlap

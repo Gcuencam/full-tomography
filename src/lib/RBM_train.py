@@ -10,8 +10,8 @@ learning_rate = 0.1
 epochs = 100
 batch_size = 10
 k = 1  # Number of iterations of Gibbs Sampling.
-dataset_filename = 'src/lib/training.npy'
-network_file_path = 'src/lib/setup.ini'
+dataset_filename = 'training.npy'
+network_file_path = 'setup.ini'
 
 dataset = np.load(dataset_filename)
 
@@ -21,7 +21,9 @@ rbm = RBM(visible_layers, hidden_layers)
 # Trains the network.
 t = time.time()
 nV, nH, w, b, c = rbm.CD_K(dataset, epochs, batch_size, k, learning_rate)
+print('Elapsed time:', time.time() - t)
 
+# Saves the network.
 config = ConfigParser()
 config.add_section('units')
 config.set('units', 'nV', str(nV))
@@ -35,4 +37,3 @@ config.set('bias', 'c', ' '.join(map(str, c)))
 with open(network_file_path, 'w') as f:
     config.write(f)
 
-print('Elapsed time:', time.time() - t)
