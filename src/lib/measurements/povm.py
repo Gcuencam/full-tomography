@@ -9,12 +9,10 @@ from src.lib.w_state import w_state
 
 
 def get_m():
-    alpha = math.sqrt((3 + math.sqrt(3)) / 6)
-    beta = math.sqrt((3 - math.sqrt(3)) / 6)
-    # a = m.sqrt(2) * alpha
-    a = alpha
-    # b = m.sqrt(2) * beta
-    b = beta
+    alpha = math.sqrt((3 + math.sqrt(3)) / 12)
+    beta = math.sqrt((3 - math.sqrt(3)) / 12)
+    a = math.sqrt(2) * alpha
+    b = math.sqrt(2) * beta
 
     op = Operator([
         [a, b],
@@ -24,12 +22,12 @@ def get_m():
 
 
 def measure_qubit(qc, qubit, ancilla):
-    qc.cx(ancilla, qubit)
-    qc = qc.compose(get_m(), qubits=[qubit])
-    qc = qc.compose(Diagonal([1, 1, 1, 1j]), qubits=[qubit, ancilla])
-    qc = qc.compose(QFT(1), qubits=[ancilla])
-    qc.measure(qubit, qubit)
-    qc.measure(ancilla, ancilla)
+    qc.cx(qubit, ancilla)
+    qc = qc.compose(get_m(), qubits=[ancilla])
+    qc = qc.compose(Diagonal([1, 1, 1, 1j]), qubits=[ancilla, qubit])
+    qc = qc.compose(QFT(1), qubits=[qubit])
+    qc.measure(qubit, 2 * qubit)
+    qc.measure(ancilla, (2 * qubit) + 1)
 
     return qc
 

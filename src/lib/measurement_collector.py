@@ -3,6 +3,8 @@
 import itertools
 from enum import Enum
 import numpy as np
+from qiskit.quantum_info import Statevector
+
 from .quantum_commons import debug_circuit, isDebugEnabled
 from .quantum_commons import simulate
 from .measurements.povm import measure_povm
@@ -33,12 +35,19 @@ def collect_pauli_measurements(qc_size, shots, output_filename):
     if isDebugEnabled():
         print(measurements)
     print('Saving to ' + output_filename)
-    np.savetxt(output_filename, measurements)
+    # np.savetxt(output_filename, measurements)
+    # np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
 
 
 def collect_povm_measurements(qc_size, shots, output_filename):
-    w_qc = w_state(qc_size)
-    measured_circuit = measure_povm(w_qc)
+    measured_circuit = w_state(qc_size)
+    measured_circuit = measure_povm(measured_circuit)
+
+    # Probabilities for measuring both qubits. In any measurement is applied in the circuit, this won't work.
+    # psi = Statevector.from_instruction(measured_circuit)
+    # probs = psi.probabilities_dict()
+    # print('probs: {}'.format(probs))
+
     measurements = []
     if isDebugEnabled():
         print(measured_circuit)
@@ -47,9 +56,54 @@ def collect_povm_measurements(qc_size, shots, output_filename):
     counts = job.result().get_counts()
 
     get_measurements(measurements, counts)
-    if isDebugEnabled():
-        print(measurements)
-    np.savetxt(output_filename, measurements)
+    # if isDebugEnabled():
+    #     print(measurements)
+    # np.savetxt(output_filename, measurements)
+    np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
+
+    counts = countPovm(measurements)
+    probs = getProbabilities(counts, shots)
+    print(probs)
+    print('Q0: 00: ' + str(probs[0]['00']) + ', 01: ' + str(probs[0]['01']) + ', 10: ' + str(probs[0]['10']) + ', 11: ' + str(probs[0]['11']))
+    print('Q1: 00: ' + str(probs[2]['00']) + ', 01: ' + str(probs[2]['01']) + ', 10: ' + str(probs[2]['10']) + ', 11: ' + str(probs[2]['11']))
+    print('Q2: 00: ' + str(probs[4]['00']) + ', 01: ' + str(probs[4]['01']) + ', 10: ' + str(probs[4]['10']) + ', 11: ' + str(probs[4]['11']))
+
+
+def countPovm(measurements):
+    qbits_count = {}
+    for bits in measurements:
+        for q_index in range(0, len(bits), 2):
+            if q_index in qbits_count:
+                q_counts = qbits_count[q_index]
+                q_value = str(bits[q_index]) + str(bits[q_index + 1])
+                if q_value in q_counts:
+                    q_counts[q_value] = q_counts[q_value] + 1
+                else:
+                    q_counts[q_value] = 1
+            else:
+                q_counts = {}
+                qbits_count[q_index] = q_counts
+                q_value = str(bits[q_index]) + str(bits[q_index + 1])
+                if q_value in q_counts:
+                    q_counts[q_value] = q_counts[q_value] + 1
+                else:
+                    q_counts[q_value] = 1
+
+    return qbits_count
+
+
+def getProbabilities(qbits_count, shots):
+    probs = {}
+    for q_index in qbits_count:
+        q_bit_count = qbits_count[q_index]
+        for q_bit_measurement in q_bit_count:
+            counts = q_bit_count[q_bit_measurement]
+            if q_index in probs:
+                probs[q_index][q_bit_measurement] = counts / shots
+            else:
+                probs[q_index] = {}
+                probs[q_index][q_bit_measurement] = counts / shots
+    return probs
 
 
 def get_measurements(measurements, counts):
