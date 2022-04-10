@@ -1,7 +1,7 @@
 import math
 
 from qiskit import QuantumCircuit
-from qiskit.circuit.library import Diagonal, QFT
+from qiskit.circuit.library import Diagonal, QFT, XOR
 from qiskit.extensions import UnitaryGate
 from qiskit.quantum_info.operators import Operator
 from src.lib.quantum_commons import simulate
@@ -22,7 +22,7 @@ def get_m():
 
 
 def measure_qubit(qc, qubit, ancilla):
-    qc.cx(qubit, ancilla)
+    qc = qc.compose(XOR(1).control(1), qubits=[qubit, ancilla])
     qc = qc.compose(get_m(), qubits=[ancilla])
     qc = qc.compose(Diagonal([1, 1, 1, 1j]), qubits=[ancilla, qubit])
     qc = qc.compose(QFT(1), qubits=[qubit])
