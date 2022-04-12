@@ -8,7 +8,7 @@ from quantum_commons import debug_circuit
 from quantum_commons import simulate
 
 
-def buildWState(circuit, referencePosition: int, n: int):
+def build(circuit, referencePosition: int, n: int):
     if (n < 2):
         raise Exception('The size must be at least two.')
     if (referencePosition < 0):
@@ -39,7 +39,7 @@ def buildWState(circuit, referencePosition: int, n: int):
 
 def testWState(qc_size, w_state_size):
     qc = QuantumCircuit(qc_size, qc_size)
-    qc = buildWState(qc, 0, w_state_size)
+    qc = build(qc, 0, w_state_size)
 
     psi = Statevector.from_instruction(qc)
     probs = psi.probabilities_dict()

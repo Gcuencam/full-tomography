@@ -5,7 +5,10 @@ import numpy as np
 from qiskit import QuantumCircuit
 from quantum_commons import debug_circuit, isDebugEnabled
 from quantum_commons import simulate
-from w_state import buildWState
+from states import w, ghz
+
+W = 'w'
+GHZ = 'ghz'
 
 
 class PauliBasis(Enum):
@@ -14,13 +17,20 @@ class PauliBasis(Enum):
     Z = 'Z'
 
 
-def collect_measurements(qc_size, shots, output_filename):
+def build(type, circuit, referencePosition, size):
+    if (type == W):
+        return w.build(circuit, referencePosition, size)
+    if (type == GHZ):
+        return ghz.build(circuit, referencePosition, size)
+
+
+def collect_measurements(type, qc_size, shots, output_filename):
     qc = QuantumCircuit(qc_size, qc_size)
     basis = getCartesianPauliBasis(qc_size)
     measurements = []
 
     for measurement_schema in basis:
-        w_qc = buildWState(qc, 0, qc_size)
+        w_qc = build(type, qc, 0, qc_size)
         measure(w_qc, measurement_schema)
         job = simulate(w_qc, shots)
         counts = job.result().get_counts()
@@ -93,4 +103,4 @@ def debugMeasurement(measurement):
 
 if __name__ == '__main__':
     qc_size = 3
-    collect_measurements(qc_size, 100000, 'training.npy')
+    collect_measurements(GHZ, qc_size, 100000, 'training.npy')
