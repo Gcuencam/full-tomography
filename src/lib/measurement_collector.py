@@ -2,9 +2,10 @@
 import itertools
 from enum import Enum
 import numpy as np
+from qiskit import QuantumCircuit
 from quantum_commons import debug_circuit, isDebugEnabled
 from quantum_commons import simulate
-from w_state import w_state
+from w_state import buildWState
 
 
 class PauliBasis(Enum):
@@ -14,11 +15,12 @@ class PauliBasis(Enum):
 
 
 def collect_measurements(qc_size, shots, output_filename):
+    qc = QuantumCircuit(qc_size, qc_size)
     basis = getCartesianPauliBasis(qc_size)
     measurements = []
 
     for measurement_schema in basis:
-        w_qc = w_state(qc_size)
+        w_qc = buildWState(qc, 0, qc_size)
         measure(w_qc, measurement_schema)
         job = simulate(w_qc, shots)
         counts = job.result().get_counts()
@@ -27,11 +29,12 @@ def collect_measurements(qc_size, shots, output_filename):
         if isDebugEnabled():
             debug_circuit(w_qc, counts, '')
     measurements = np.array(measurements)
-    
+
     if isDebugEnabled():
         print(measurements)
     print('Saving to ' + output_filename)
     np.save(output_filename, measurements)
+
 
 def get_measurements(measurements, counts):
     meas_out = list(counts.keys())
@@ -41,7 +44,7 @@ def get_measurements(measurements, counts):
             measurement.append(int(bit))
         for i in range(counts[meas]):
             measurements.append(measurement.copy())
-        
+
 
 def measure(qc, measurement_schema):
     for i in range(qc.num_qubits):

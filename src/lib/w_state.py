@@ -8,50 +8,44 @@ from quantum_commons import debug_circuit
 from quantum_commons import simulate
 
 
-def w_state(size: int):
-    circuit = QuantumCircuit(size, size)
-
-    if size < 0:
+def buildWState(circuit, referencePosition: int, n: int):
+    if (n < 2):
         raise Exception('The size must be at least two.')
-    if size == 2:
-        circuit.h(0)
-    else:
-        circuit.ry(2 * np.arccos(1 / m.sqrt(size)), 0)
-
-        for target_qubit in range(1, size - 2):
-            control_qubit = target_qubit - 1
-            circuit.cry(2 * np.arccos(1 / m.sqrt(size - target_qubit)), control_qubit, target_qubit)
-
-        circuit.ch(size - 3, size - 2)
-
-    for target_qubit in range(size - 1, 0, -1):
-        control_qubit = target_qubit - 1
-        circuit.cx(control_qubit, target_qubit)
-
-    circuit.x(0)
-    return circuit
-
-
-def compose_w_state(qc, q_reference, q_size):
-    if q_reference < 0:
+    if (referencePosition < 0):
         raise Exception('The reference position must be at least zero.')
-    if q_reference + q_size > qc.num_qubits:
+    if (n > circuit.width() / 2):
         raise Exception('The circuit does not have enough qubits.')
-    w_qc = w_state(q_size)
-    return qc.compose(w_qc, qubits=range(q_reference, q_reference + q_size))
+    if (referencePosition + n > circuit.width() / 2):
+        raise Exception('The reference position must be lower.')
+    firstPosition = referencePosition
+    lastPosition = referencePosition + n - 1
+    _circuit = circuit.copy()
+    for i in range(firstPosition, lastPosition + 1):
+        _circuit.reset(i)
+    if (n >= 3):
+        _circuit.ry(2 * np.arccos(1 / m.sqrt(n)), firstPosition)
+        for i in range(n - 3):
+            _circuit.cry(2 * np.arccos(1 / m.sqrt(n - (i + 1))), firstPosition + i, firstPosition + i + 1)
+    if (n == 2):
+        _circuit.h(firstPosition)
+    else:
+        _circuit.ch(lastPosition - 2, lastPosition - 1)
+    for i in reversed(range(firstPosition, lastPosition)):
+        _circuit.cx(i, i + 1)
+    _circuit.x(firstPosition)
+
+    return _circuit
 
 
-def testWState(qc_size):
-    w_state_initial_qubit_position = 1
-    w_state_size = 3
-    qc = compose_w_state(QuantumCircuit(qc_size, qc_size), w_state_initial_qubit_position, w_state_size)
+def testWState(qc_size, w_state_size):
+    qc = QuantumCircuit(qc_size, qc_size)
+    qc = buildWState(qc, 0, w_state_size)
 
     psi = Statevector.from_instruction(qc)
     probs = psi.probabilities_dict()
 
-    qc.measure(1, 1)
-    qc.measure(2, 2)
-    qc.measure(3, 3)
+    for i in range(w_state_size):
+        qc.measure(i, i)
 
     shots = 1000
     job = simulate(qc, shots)
@@ -69,5 +63,6 @@ def testWState(qc_size):
 
 
 if __name__ == '__main__':
-    qc_size = 4
-    testWState(qc_size)
+    qc_size = 3
+    w_state_size = 3
+    testWState(qc_size, w_state_size)
