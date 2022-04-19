@@ -9,6 +9,7 @@ from .quantum_commons import debug_circuit, isDebugEnabled
 from .quantum_commons import simulate
 from .measurements.povm import measure_povm
 from .w_state import w_state
+from .w_state import plus_state
 
 
 class PauliBasis(Enum):
@@ -23,10 +24,10 @@ def collect_pauli_measurements(qc_size, shots, output_filename):
 
     for measurement_schema in basis:
         w_qc = w_state(qc_size)
-        measure(w_qc, measurement_schema)
+        measure_pauli(w_qc, measurement_schema)
         job = simulate(w_qc, shots)
         counts = job.result().get_counts()
-        get_measurements(measurements, counts)
+        measurements = expandCounts(counts)
 
         if isDebugEnabled():
             debug_circuit(w_qc, counts, '')
@@ -41,59 +42,84 @@ def collect_pauli_measurements(qc_size, shots, output_filename):
 
 def collect_povm_measurements(qc_size, shots, output_filename):
     measured_circuit = w_state(qc_size)
+    # measured_circuit = plus_state(qc_size)
     measured_circuit = measure_povm(measured_circuit)
 
     # Probabilities for measuring both qubits. In any measurement is applied in the circuit, this won't work.
     # psi = Statevector.from_instruction(measured_circuit)
     # probs = psi.probabilities_dict()
     # print('probs: {}'.format(probs))
+    # print(psi)
 
-    measurements = []
     if isDebugEnabled():
         print(measured_circuit)
 
     job = simulate(measured_circuit, shots)
     counts = job.result().get_counts()
 
-    get_measurements(measurements, counts)
+    measurements = expandCounts(counts)
     # if isDebugEnabled():
     #     print(measurements)
     # np.savetxt(output_filename, measurements)
     np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
 
-    counts = countPovm(measurements)
-    probs = getProbabilities(counts, shots)
-    print(probs)
+    povmCounts = countPovm(counts)
+    print(getProbabilities(povmCounts, shots))
 
-    #2Qubits
-    # print('Q0: 00: ' + str(probs[0]['00']) + ', 01: ' + str(probs[0]['01']) + ', 10: ' + str(probs[0]['10']) + ', 11: ' + str(probs[0]['11']))
-    # print('Q1: 00: ' + str(probs[2]['00']) + ', 01: ' + str(probs[2]['01']) + ', 10: ' + str(probs[2]['10']) + ', 11: ' + str(probs[2]['11']))
+    individualCounts = countPovmIndividual(counts)
+    print(individualCounts)
 
-    #3Qubits
+    # 2Qubits
+    # print('Q0: 00: ' + str(povmCounts[0]['00'] / shots) + ', 01: ' + str(povmCounts[0]['01'] / shots) + ', 10: ' + str(povmCounts[0]['10'] / shots) + ', 11: ' + str(povmCounts[0]['11'] / shots))
+    # print('Q1: 00: ' + str(povmCounts[2]['00'] / shots) + ', 01: ' + str(povmCounts[2]['01'] / shots) + ', 10: ' + str(povmCounts[2]['10'] / shots) + ', 11: ' + str(povmCounts[2]['11'] / shots))
+
+    # 3Qubits
     # print('Q0: 00: ' + str(probs[0]['00']) + ', 01: ' + str(probs[0]['01']) + ', 10: ' + str(probs[0]['10']) + ', 11: ' + str(probs[0]['11']))
     # print('Q1: 00: ' + str(probs[2]['00']) + ', 01: ' + str(probs[2]['01']) + ', 10: ' + str(probs[2]['10']) + ', 11: ' + str(probs[2]['11']))
     # print('Q2: 00: ' + str(probs[4]['00']) + ', 01: ' + str(probs[4]['01']) + ', 10: ' + str(probs[4]['10']) + ', 11: ' + str(probs[4]['11']))
 
-
-def countPovm(measurements):
+def countPovmIndividual(counts):
     qbits_count = {}
-    for bits in measurements:
+    count_keys = list(counts.keys())
+    for bits in count_keys:
+        for q_index in range(0, len(bits)):
+            q_value = str(bits[q_index])
+            if q_index in qbits_count:
+                q_counts = qbits_count[q_index]
+                if q_value in q_counts:
+                    q_counts[q_value] = q_counts[q_value] + counts[bits]
+                else:
+                    q_counts[q_value] = counts[bits]
+            else:
+                q_counts = {}
+                qbits_count[q_index] = q_counts
+                if q_value in q_counts:
+                    q_counts[q_value] = q_counts[q_value] + counts[bits]
+                else:
+                    q_counts[q_value] = counts[bits]
+
+    return qbits_count
+
+def countPovm(counts):
+    qbits_count = {}
+    count_keys = list(counts.keys())
+    for bits in count_keys:
         for q_index in range(0, len(bits), 2):
             if q_index in qbits_count:
                 q_counts = qbits_count[q_index]
                 q_value = str(bits[q_index]) + str(bits[q_index + 1])
                 if q_value in q_counts:
-                    q_counts[q_value] = q_counts[q_value] + 1
+                    q_counts[q_value] = q_counts[q_value] + counts[bits]
                 else:
-                    q_counts[q_value] = 1
+                    q_counts[q_value] = counts[bits]
             else:
                 q_counts = {}
                 qbits_count[q_index] = q_counts
                 q_value = str(bits[q_index]) + str(bits[q_index + 1])
                 if q_value in q_counts:
-                    q_counts[q_value] = q_counts[q_value] + 1
+                    q_counts[q_value] = q_counts[q_value] + counts[bits]
                 else:
-                    q_counts[q_value] = 1
+                    q_counts[q_value] = counts[bits]
 
     return qbits_count
 
@@ -112,7 +138,8 @@ def getProbabilities(qbits_count, shots):
     return probs
 
 
-def get_measurements(measurements, counts):
+def expandCounts(counts):
+    measurements = []
     meas_out = list(counts.keys())
     for meas in meas_out:
         measurement = []
@@ -120,9 +147,10 @@ def get_measurements(measurements, counts):
             measurement.append(int(bit))
         for i in range(counts[meas]):
             measurements.append(measurement.copy())
+    return measurements
 
 
-def measure(qc, measurement_schema):
+def measure_pauli(qc, measurement_schema):
     for i in range(qc.num_qubits):
         measurement = measurement_schema[i]
         debugMeasurement(measurement)

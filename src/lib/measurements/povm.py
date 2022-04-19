@@ -1,7 +1,8 @@
 import math
 
+import numpy
 from qiskit import QuantumCircuit
-from qiskit.circuit.library import Diagonal, QFT, XOR
+from qiskit.circuit.library import Diagonal, QFT, XOR, CPhaseGate
 from qiskit.extensions import UnitaryGate
 from qiskit.quantum_info.operators import Operator
 from src.lib.quantum_commons import simulate
@@ -9,8 +10,9 @@ from src.lib.w_state import w_state
 
 
 def get_m():
-    alpha = math.sqrt((3 + math.sqrt(3)) / 12)
-    beta = math.sqrt((3 - math.sqrt(3)) / 12)
+    dividing = 12
+    alpha = math.sqrt((3 + math.sqrt(3)) / dividing)
+    beta = math.sqrt((3 - math.sqrt(3)) / dividing)
     a = math.sqrt(2) * alpha
     b = math.sqrt(2) * beta
 
@@ -22,10 +24,12 @@ def get_m():
 
 
 def measure_qubit(qc, qubit, ancilla):
-    qc = qc.compose(XOR(1).control(1), qubits=[qubit, ancilla])
+    qc.cx(qubit, ancilla)
     qc = qc.compose(get_m(), qubits=[ancilla])
     qc = qc.compose(Diagonal([1, 1, 1, 1j]), qubits=[ancilla, qubit])
-    qc = qc.compose(QFT(1), qubits=[qubit])
+    # qc = qc.compose(CPhaseGate(numpy.pi / 2), qubits=[ancilla, qubit])
+    # qc = qc.compose(QFT(1), qubits=[qubit])
+    qc.h(qubit)
     qc.measure(qubit, 2 * qubit)
     qc.measure(ancilla, (2 * qubit) + 1)
 

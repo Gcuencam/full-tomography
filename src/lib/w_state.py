@@ -6,6 +6,12 @@ from qiskit.quantum_info import Statevector
 from .quantum_commons import debug_circuit
 from .quantum_commons import simulate
 
+def plus_state(size: int):
+    circuit = QuantumCircuit(size, size)
+
+    circuit.h(0)
+
+    return circuit
 
 def w_state(size: int):
     circuit = QuantumCircuit(size, size)
