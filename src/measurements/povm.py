@@ -1,12 +1,13 @@
 import math
 
-import numpy
 from qiskit import QuantumCircuit
-from qiskit.circuit.library import Diagonal, QFT, XOR, CPhaseGate
+from qiskit.circuit.library import Diagonal
 from qiskit.extensions import UnitaryGate
 from qiskit.quantum_info.operators import Operator
-from src.lib.quantum_commons import simulate
-from src.lib.w_state import w_state
+
+from src.measurement_collector import build
+from src.common.quantum_commons import simulate
+from src.states.builder import States
 
 
 def get_m():
@@ -51,8 +52,8 @@ def measure_povm(qc):
 
 
 if __name__ == '__main__':
-    size = 2
-    w_qc = w_state(size)
+    qc_size = 2
+    w_qc = build(States.W, QuantumCircuit(qc_size, qc_size), 0, qc_size)
     measured_circuit = measure_povm(w_qc)
     print(measured_circuit)
 

@@ -2,7 +2,8 @@ import getopt
 import os
 import sys
 
-from src.lib.measurement_collector import collect_pauli_measurements, collect_povm_measurements
+from src.measurement_collector import collect_povm_measurements, collect_pauli_measurements
+from src.states.builder import States
 
 os.environ['DEBUG'] = 'False'
 
@@ -13,9 +14,9 @@ def main(argv):
     output_file_name = 'measurements.txt'
     measurement_type = ''
     try:
-        opts, args = getopt.getopt(argv, "dhs:q:o:m:", ["shots=", "qubits=", "output=", "measurement="])
+        opts, args = getopt.getopt(argv, "dhs:q:o:m:t:", ["shots=", "qubits=", "output=", "measurement=", "type="])
     except getopt.GetoptError:
-        print('test.py -s <shoots_number> -q <qubits_number> -o <filename>-d')
+        print('test.py -s <shoots_number> -q <qubits_number> -o <filename> -d -t type')
         sys.exit(2)
 
     for opt, arg in opts:
@@ -32,11 +33,13 @@ def main(argv):
             output_file_name = arg
         elif opt in ("-m", "--measurement"):
             measurement_type = arg
+        elif opt in ("-t", "--type"):
+            state_type = States(arg)
 
     if measurement_type == 'povm':
-        collect_povm_measurements(qc_size, shots, output_file_name)
+        collect_povm_measurements(state_type, qc_size, shots, output_file_name)
     elif measurement_type == 'pauli':
-        collect_pauli_measurements(qc_size, shots, output_file_name)
+        collect_pauli_measurements(state_type, qc_size, shots, output_file_name)
     else:
         print("wrong measurement type: valid options [povm | pauli]")
 
