@@ -49,12 +49,13 @@ def collect_povm_measurements(type, qc_size, shots, output_filename):
 
     job = simulate(measured_circuit, shots)
     counts = job.result().get_counts()
-
     measurements = expandCounts(counts)
-    # if isDebugEnabled():
-    #     print(measurements)
+    measurements = np.array(measurements)
+    if isDebugEnabled():
+        print(measurements)
+    np.save(output_filename, measurements)
     # np.savetxt(output_filename, measurements)
-    np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
+    # np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
 
     povmCounts = countPovm(counts)
     print(getProbabilities(povmCounts, shots))
