@@ -1,7 +1,6 @@
-import qiskit
 from qiskit import QuantumCircuit
 from qiskit_experiments.library import StateTomography
-from qiskit.providers.aer import QasmSimulator, AerSimulator
+from qiskit.providers.aer import AerSimulator
 
 from src.states import w
 
