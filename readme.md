@@ -23,7 +23,8 @@ source venv/bin/activate
 # -o is the output filename
 # -d is to enable debug mode
 # -m measuremente type. pauli or povm
-python3 index.py -s 10 -q 4 -o test.txt -d -m [pauli | povm]
+# -t prepared state type. w or ghz
+python3 index.py -s 10 -q 4 -o test.txt -d -m [pauli | povm] -t [w | ghz]
 ```
 
 #### Other possible issues
