@@ -19,6 +19,18 @@ def y_measurement(qc, qubit):
     return qc
 
 
+def changePhase(circuit, phases):
+    for p in phases:
+        if p < 0 or p > 2 * np.pi:
+            raise Exception('The phases must be between 0 and 2pi.')
+
+    _circuit = circuit.copy()
+    for i in range(len(phases)):
+        if phases[i] != 0:
+            _circuit.p(phases[i], i)
+    return _circuit
+
+
 def stringToBitArray(str):
     arr = []
     for j in str:
@@ -29,7 +41,8 @@ def stringToBitArray(str):
 def collect_measurements(type, qc_size, shots, output_filename):
     qc = QuantumCircuit(qc_size, qc_size)
     w_qc = build(type, qc, 0, qc_size)
-
+    w_qc.barrier()
+    w_qc = changePhase(w_qc, [0, 0, 0])
     w_qc.barrier()
 
     measurements = []
