@@ -45,7 +45,7 @@ def collect_measurements(type, qc_size, shots, output_filename):
     w_qc = changePhase(w_qc, [0, 0, 0])
     w_qc.barrier()
 
-    #Z measurements.
+    #Z measurements
     measurements = []
     for i in range(shots):
         w_qc_copy = w_qc.copy()
@@ -57,7 +57,7 @@ def collect_measurements(type, qc_size, shots, output_filename):
         measurements.append(stringToBitArray(string))
     np.savetxt(output_filename + '_Z.txt', measurements)
 
-    #XX measurements.
+    #XX measurements
     for i in range(qc_size - 1):
         measurements = []
         w_qc_xx = w_qc.copy()
@@ -74,7 +74,7 @@ def collect_measurements(type, qc_size, shots, output_filename):
             measurements.append(stringToBitArray(string))       
         np.savetxt(output_filename + '_XX_' + str(i) + '.txt', measurements)
 
-    #XY measurements.
+    #XY measurements
     for i in range(qc_size - 1):
         measurements = []
         w_qc_xy = w_qc.copy()
