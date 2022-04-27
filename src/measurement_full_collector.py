@@ -9,14 +9,13 @@ from common.quantum_commons import simulate
 def x_measurement(qc, qubit):
     """Measure 'qubit' in the X-basis, and store the result in 'cbit'"""
     qc.h(qubit)
-    return qc
+
 
 
 def y_measurement(qc, qubit):
     """Measure 'qubit' in the X-basis, and store the result in 'cbit'"""
     qc.sdg(qubit)
     qc.h(qubit)
-    return qc
 
 
 def changePhase(circuit, phases):
