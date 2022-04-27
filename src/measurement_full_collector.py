@@ -45,45 +45,51 @@ def collect_measurements(type, qc_size, shots, output_filename):
     w_qc = changePhase(w_qc, [0, 0, 0])
     w_qc.barrier()
 
+    #Z measurements.
     measurements = []
     for i in range(shots):
         w_qc_copy = w_qc.copy()
         for j in range(qc_size):
             w_qc_copy.measure(j, j)
-
         job = simulate(w_qc_copy, 1)
         counts = job.result().get_counts()
         string = list(counts.keys())[0]
         measurements.append(stringToBitArray(string))
-    np.save(output_filename + '_ZZ', measurements)
+    np.savetxt(output_filename + '_Z.txt', measurements)
 
+    #XX measurements.
     for i in range(qc_size - 1):
         measurements = []
+        w_qc_xx = w_qc.copy()
+        x_measurement(w_qc_xx, i)
+        x_measurement(w_qc_xx, i + 1)
+        w_qc_xx.barrier()
+        for k in range(qc_size):
+            w_qc_xx.measure(k, k)
         for j in range(shots):
-            w_qc_copy = w_qc.copy()
-            x_measurement(w_qc_copy, i)
-            x_measurement(w_qc_copy, i + 1)
-            for k in range(qc_size):
-                w_qc_copy.measure(k, k)
+            w_qc_copy = w_qc_xx.copy()
+            job = simulate(w_qc_copy, 1)
+            counts = job.result().get_counts()
+            string = list(counts.keys())[0]
+            measurements.append(stringToBitArray(string))       
+        np.savetxt(output_filename + '_XX_' + str(i) + '.txt', measurements)
+
+    #XY measurements.
+    for i in range(qc_size - 1):
+        measurements = []
+        w_qc_xy = w_qc.copy()
+        x_measurement(w_qc_xy, i)
+        y_measurement(w_qc_xy, i + 1)
+        w_qc_xy.barrier()
+        for k in range(qc_size):
+            w_qc_xy.measure(k, k)
+        for j in range(shots):
+            w_qc_copy = w_qc_xy.copy()
             job = simulate(w_qc_copy, 1)
             counts = job.result().get_counts()
             string = list(counts.keys())[0]
             measurements.append(stringToBitArray(string))
-        np.save(output_filename + '_XX_' + str(i), measurements)
-
-    for i in range(qc_size - 1):
-        measurements = []
-        for j in range(shots):
-            w_qc_copy = w_qc.copy()
-            x_measurement(w_qc_copy, i)
-            y_measurement(w_qc_copy, i + 1)
-            for k in range(qc_size):
-                w_qc_copy.measure(k, k)
-            job = simulate(w_qc_copy, 1)
-            counts = job.result().get_counts()
-            string = list(counts.keys())[0]
-            measurements.append(stringToBitArray(string))
-        np.save(output_filename + '_XY_' + str(i), measurements)
+        np.savetxt(output_filename + '_XY_' + str(i) + '.txt', measurements)
 
 
 if __name__ == '__main__':
