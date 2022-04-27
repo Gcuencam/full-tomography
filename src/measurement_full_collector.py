@@ -30,11 +30,23 @@ def changePhase(circuit, phases):
     return _circuit
 
 
-def stringToBitArray(str):
-    arr = []
-    for j in str:
-        arr.append(int(j))
-    return arr
+def get_measurements(qc, qc_size, shots):
+    for i in range(qc_size):
+        qc.measure(i, i)
+    print(qc.draw())
+    job = simulate(qc, shots)
+    counts = job.result().get_counts()
+    
+    measurements = []
+    meas_out = list(counts.keys())
+    for meas in meas_out:
+        measurement = []
+        for bit in meas:
+            measurement.append(int(bit))
+        for i in range(counts[meas]):
+            measurements.append(measurement.copy())
+    np.random.shuffle(measurements)
+    return measurements
 
 
 def collect_measurements(type, qc_size, shots, output_filename):
@@ -44,53 +56,33 @@ def collect_measurements(type, qc_size, shots, output_filename):
     w_qc = changePhase(w_qc, [0, 0, 0])
     w_qc.barrier()
 
+
     #Z measurements
-    measurements = []
-    for i in range(shots):
-        w_qc_copy = w_qc.copy()
-        for j in range(qc_size):
-            w_qc_copy.measure(j, j)
-        job = simulate(w_qc_copy, 1)
-        counts = job.result().get_counts()
-        string = list(counts.keys())[0]
-        measurements.append(stringToBitArray(string))
+    w_qc_z = w_qc.copy()
+    measurements = get_measurements(w_qc_z, qc_size, shots)
     np.savetxt(output_filename + '_Z.txt', measurements)
 
     #XX measurements
     for i in range(qc_size - 1):
-        measurements = []
         w_qc_xx = w_qc.copy()
         x_measurement(w_qc_xx, i)
         x_measurement(w_qc_xx, i + 1)
         w_qc_xx.barrier()
-        for k in range(qc_size):
-            w_qc_xx.measure(k, k)
-        for j in range(shots):
-            w_qc_copy = w_qc_xx.copy()
-            job = simulate(w_qc_copy, 1)
-            counts = job.result().get_counts()
-            string = list(counts.keys())[0]
-            measurements.append(stringToBitArray(string))       
+        measurements = get_measurements(w_qc_xx, qc_size, shots)
         np.savetxt(output_filename + '_XX_' + str(i) + '.txt', measurements)
+
 
     #XY measurements
     for i in range(qc_size - 1):
-        measurements = []
         w_qc_xy = w_qc.copy()
         x_measurement(w_qc_xy, i)
         y_measurement(w_qc_xy, i + 1)
         w_qc_xy.barrier()
-        for k in range(qc_size):
-            w_qc_xy.measure(k, k)
-        for j in range(shots):
-            w_qc_copy = w_qc_xy.copy()
-            job = simulate(w_qc_copy, 1)
-            counts = job.result().get_counts()
-            string = list(counts.keys())[0]
-            measurements.append(stringToBitArray(string))
+        measurements = get_measurements(w_qc_xy, qc_size, shots)
         np.savetxt(output_filename + '_XY_' + str(i) + '.txt', measurements)
 
 
 if __name__ == '__main__':
+    
     qc_size = 3
-    collect_measurements(States.W, qc_size, 10, './src/dataset/training_full')
+    collect_measurements(States.W, qc_size, 10000, './src/dataset/training_full')
