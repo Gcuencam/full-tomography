@@ -31,8 +31,8 @@ def changePhase(circuit, phases):
 
 
 def get_measurements(qc, qc_size, shots):
-    for i in range(qc_size):
-        qc.measure(i, i)
+    r = range(qc_size)
+    qc.measure(r, r)
     print(qc.draw())
     job = simulate(qc, shots)
     counts = job.result().get_counts()
@@ -56,30 +56,32 @@ def collect_measurements(type, qc_size, shots, output_filename):
     w_qc = changePhase(w_qc, [0, 0, 0])
     w_qc.barrier()
 
-
     #Z measurements
     w_qc_z = w_qc.copy()
     measurements = get_measurements(w_qc_z, qc_size, shots)
     np.savetxt(output_filename + '_Z.txt', measurements)
 
     #XX measurements
-    for i in range(qc_size - 1):
+    j = 0
+    for i in range(qc_size-1,0,-1):
         w_qc_xx = w_qc.copy()
         x_measurement(w_qc_xx, i)
-        x_measurement(w_qc_xx, i + 1)
+        x_measurement(w_qc_xx, i - 1)
         w_qc_xx.barrier()
         measurements = get_measurements(w_qc_xx, qc_size, shots)
-        np.savetxt(output_filename + '_XX_' + str(i) + '.txt', measurements)
-
+        np.savetxt(output_filename + '_XX_' + str(j) + '.txt', measurements)
+        j+=1
 
     #XY measurements
-    for i in range(qc_size - 1):
+    j = 0
+    for i in range(qc_size-1,0,-1):
         w_qc_xy = w_qc.copy()
         x_measurement(w_qc_xy, i)
-        y_measurement(w_qc_xy, i + 1)
+        y_measurement(w_qc_xy, i - 1)
         w_qc_xy.barrier()
         measurements = get_measurements(w_qc_xy, qc_size, shots)
-        np.savetxt(output_filename + '_XY_' + str(i) + '.txt', measurements)
+        np.savetxt(output_filename + '_XY_' + str(j) + '.txt', measurements)
+        j+=1
 
 
 if __name__ == '__main__':
