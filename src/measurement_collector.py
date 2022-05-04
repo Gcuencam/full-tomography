@@ -2,11 +2,12 @@
 import numpy as np
 from qiskit import QuantumCircuit
 
-from .measurements.pauli import measure_pauli, getCartesianPauliBasis
-from .states.builder import build, States
-from .common.quantum_commons import debug_circuit, isDebugEnabled, expandCounts, countPovm, getProbabilities
+from .common.quantum_commons import debug_circuit, isDebugEnabled, expandCounts, getFrequencies
 from .common.quantum_commons import simulate
-from .measurements.povm import measure_povm
+from .measurements.pauli import measure_pauli, getCartesianPauliBasis
+from .measurements.povm import measure_povm, tethrahedron, least_square_estimator
+from .states.builder import build, States
+
 
 def collect_pauli_measurements(type, qc_size, shots, output_filename):
     qc = QuantumCircuit(qc_size, qc_size)
@@ -35,7 +36,6 @@ def collect_pauli_measurements(type, qc_size, shots, output_filename):
 def collect_povm_measurements(type, qc_size, shots, output_filename):
     qc = QuantumCircuit(qc_size, qc_size)
     qc = build(type, qc, 0, qc_size)
-    # measured_circuit = plus_state(qc_size)
     measured_circuit = measure_povm(qc)
 
     # Probabilities for measuring both qubits. In any measurement is applied in the circuit, this won't work.
@@ -57,8 +57,9 @@ def collect_povm_measurements(type, qc_size, shots, output_filename):
     # np.savetxt(output_filename, measurements)
     # np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
 
-    povmCounts = countPovm(counts)
-    print(getProbabilities(povmCounts, shots))
+    frequencies = getFrequencies(counts, shots)
+    estimator = least_square_estimator(frequencies, tethrahedron(), 2, qc_size)
+    print(estimator)
 
     # individualCounts = countPovmIndividual(counts)
     # print(individualCounts)

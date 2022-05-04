@@ -75,7 +75,7 @@ def countPovm(counts):
     return qbits_count
 
 
-def getProbabilities(qbits_count, shots):
+def getSingleQubitProbabilities(qbits_count, shots):
     probs = {}
     for q_index in qbits_count:
         q_bit_count = qbits_count[q_index]
@@ -86,6 +86,13 @@ def getProbabilities(qbits_count, shots):
             else:
                 probs[q_index] = {}
                 probs[q_index][q_bit_measurement] = counts / shots
+    return probs
+
+def getFrequencies(counts, shots):
+    probs = {}
+    for state_index, state in enumerate(counts):
+        probs[state] = counts[state] / shots
+
     return probs
 
 
