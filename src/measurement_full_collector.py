@@ -39,12 +39,10 @@ def get_measurements(qc, qc_size, shots):
     
     measurements = []
     meas_out = list(counts.keys())
-    for meas in meas_out:
-        measurement = []
-        for bit in meas:
-            measurement.append(int(bit))
+    for meas in meas_out:   
+        measurement = int(meas,2)
         for i in range(counts[meas]):
-            measurements.append(measurement.copy())
+            measurements.append(measurement)
     np.random.shuffle(measurements)
     return measurements
 
@@ -53,13 +51,26 @@ def collect_measurements(type, qc_size, shots, output_filename):
     qc = QuantumCircuit(qc_size, qc_size)
     w_qc = build(type, qc, 0, qc_size)
     w_qc.barrier()
-    w_qc = changePhase(w_qc, [0, 0, 0])
+    w_qc = changePhase(w_qc, [np.pi/4, np.pi/2, np.pi])
     w_qc.barrier()
 
     #Z measurements
     w_qc_z = w_qc.copy()
-    measurements = get_measurements(w_qc_z, qc_size, shots)
-    np.savetxt(output_filename + '_Z.txt', measurements)
+    r = range(qc_size)
+    w_qc_z.measure(r, r)
+    print(w_qc_z.draw())
+    job = simulate(w_qc_z, shots)
+    counts = job.result().get_counts()    
+    measurements = []
+    meas_out = list(counts.keys())
+    for meas in meas_out:
+        measurement = []
+        for bit in meas:
+            measurement.append(int(bit)) 
+        for i in range(counts[meas]):
+            measurements.append(measurement.copy())
+    np.random.shuffle(measurements)
+    np.savetxt(output_filename + '_Z' + '.txt', measurements)
 
     #XX measurements
     j = 0
@@ -87,4 +98,4 @@ def collect_measurements(type, qc_size, shots, output_filename):
 if __name__ == '__main__':
     
     qc_size = 3
-    collect_measurements(States.W, qc_size, 10000, './src/dataset/training_full')
+    collect_measurements(States.W, qc_size, 5000, 'dataset/training_full')
