@@ -1,4 +1,3 @@
-import itertools
 import math
 
 from qiskit import QuantumCircuit
@@ -100,7 +99,7 @@ def least_square_estimator(povm, frequencies):
 
 
 # Test to get tr(Ex * rho)
-def povm_test(rho):
+def tethrahedron_test(rho):
     povm = tethrahedron()
     e = povm['e']
     povm_size = len(povm['kets'])
@@ -113,6 +112,29 @@ def povm_test(rho):
 
     return result
 
+def least_squares_test():
+    # Testing least squares estimator
+    w_state_frequencies = {
+        '0000': 0.0845,
+      # '0001': 0,
+        '0010': 0.0842,
+        '0011': 0.0839,
+      # '0100': 0,
+        '0101': 0.0818,
+        '0110': 0.0829,
+        '0111': 0.0782,
+        '1000': 0.0876,
+        '1001': 0.0851,
+        '1010': 0.0802,
+      # '1011': 0,
+        '1100': 0.0837,
+        '1101': 0.0843,
+      # '1110': 0,
+        '1111': 0.0836
+    }
+    rho_ls = least_square_estimator(tethrahedron(), w_state_frequencies)
+    return np.sqrt(np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T))[0][0])
+
 if __name__ == '__main__':
     # qc_size = 2
     # w_qc = build(States.W, QuantumCircuit(qc_size, qc_size), 0, qc_size)
@@ -124,25 +146,5 @@ if __name__ == '__main__':
     # print(counts)
 
     # Getting tr(Ex * rho) of plus state (|0> + |1>) / (m.sqrt(2)).
-    print(povm_test(plus_state_rho()))
-
-    print()
-    # Testing least squares estimator
-    frequencies = {
-      '0000': 0.0845,
-      '0010': 0.0842,
-      '0011': 0.0839,
-      '0101': 0.0818,
-      '0110': 0.0829,
-      '0111': 0.0782,
-      '1000': 0.0876,
-      '1001': 0.0851,
-      '1010': 0.0802,
-      '1100': 0.0837,
-      '1101': 0.0843,
-      '1111': 0.0836
-    }
-    rho_ls = least_square_estimator(tethrahedron(), frequencies)
-    print(rho_ls)
-    overlap = np.sqrt(np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T)))
-    print(overlap)
+    print(tethrahedron_test(plus_state_rho()))
+    print(least_squares_test())
