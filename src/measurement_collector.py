@@ -73,11 +73,7 @@ def collect_povm_measurements(type, qc_size, shots, output_filename):
     # np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
 
     frequencies = getFrequencies(counts, shots)
-    fd = collections.OrderedDict(sorted(frequencies.items()))
-    print(fd)
-
-    print()
-    rho_ls = povm.least_square_estimator(frequencies, povm.tethrahedron(), 2, qc_size)
+    rho_ls = povm.least_square_estimator(povm.tethrahedron(), frequencies)
     print(rho_ls)
 
     overlap = np.sqrt(np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T)))

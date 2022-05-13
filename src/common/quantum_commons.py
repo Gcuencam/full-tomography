@@ -4,7 +4,7 @@ Created on Fri Feb 25 19:42:48 2022
 
 @author: Pedro
 """
-
+import collections
 import os
 
 from qiskit import transpile
@@ -93,7 +93,7 @@ def getFrequencies(counts, shots):
     for state_index, state in enumerate(counts):
         probs[state] = counts[state] / shots
 
-    return probs
+    return collections.OrderedDict(sorted(probs.items()))
 
 
 def expandCounts(counts):

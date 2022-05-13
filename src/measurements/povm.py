@@ -9,6 +9,7 @@ from qiskit.quantum_info.operators import Operator
 import numpy as np
 
 from src.states.plus import plus_state_rho
+from src.states.w import w_state_vector
 
 divisor = 12
 alpha = math.sqrt((3 + math.sqrt(3)) / divisor)
@@ -72,52 +73,31 @@ def tethrahedron():
     return {
         'kets': v_ket,
         'bras': v_bra,
-        'e': e
+        'e': e,
+        'e_states': {
+            '00': e[0],
+            '01': e[1],
+            '10': e[2],
+            '11': e[3]
+        }
     }
 
+def least_square_estimator(povm, frequencies):
+    e_states = povm['e_states']
+    povm_dimension = list(povm['e_states'].values())[0].shape[0]
+    n_qubits = len(list(frequencies.keys())[0]) / povm_dimension
 
-def get_cartessian_states(options, dimension):
-    states = np.empty(2 ** len(options), dtype=object)
-    cartesianProduct = list(itertools.product(options, repeat=dimension))
-    for i, value in enumerate(cartesianProduct):
-        states[i] = value
+    result = np.zeros(povm_dimension ** 2)
+    for i, state in enumerate(frequencies):
+        kron = np.identity(1)
+        for j in range(0, len(state), 2):
+            qbit_state = state[j] + state[j + 1]
+            povm_i = (povm_dimension + 1) * e_states[qbit_state] - np.identity(povm_dimension)
+            kron = np.kron(kron, povm_i)
+        result = result + (frequencies[state] * kron)
 
-    return states
+    return result / (povm_dimension ** (n_qubits - 1))
 
-
-def pre_calculate_value(povm, dimension):
-    possible_states = ['00', '01', '10', '11']
-    povm_index_map = {
-        '00': 0,
-        '01': 1,
-        '10': 2,
-        '11': 3,
-    }
-    e = povm['e']
-
-    states = get_cartessian_states(possible_states, dimension)
-    result = {}
-    for index, value in enumerate(states):
-        m1 = (dimension + 1) * e[povm_index_map[value[0]]] - np.identity(dimension)
-        m2 = (dimension + 1) * e[povm_index_map[value[1]]] - np.identity(dimension)
-        # Not sure if I should use tensordot or kron
-        # tensor = np.tensordot(m1, m2, axes=0)
-        tensor = np.kron(m1, m2)
-        result[value[0] + value[1]] = tensor
-
-    return result
-
-def least_square_estimator(frequencies, povm, dimension, n):
-    pre_calculated_tensor = pre_calculate_value(povm, dimension)
-
-    estimator = np.zeros((dimension ** 2, dimension ** 2))
-    for index, state in enumerate(frequencies):
-        fx = frequencies[state]
-        pre_calculated_e = pre_calculated_tensor[state]
-        estimator = estimator + (fx * pre_calculated_e)
-
-    estimator = estimator / (dimension ** (n - 1))
-    return estimator
 
 # Test to get tr(Ex * rho)
 def povm_test(rho):
@@ -149,7 +129,7 @@ if __name__ == '__main__':
     print()
     # Testing least squares estimator
     frequencies = {'1001': 0.007, '1010': 0.028, '0101': 0.014, '1000': 0.056, '1110': 0.032, '0100': 0.178, '1100': 0.051, '1011': 0.035, '0110': 0.111, '0011': 0.09, '0001': 0.013, '1101': 0.003, '1111': 0.024, '0111': 0.101, '0010': 0.108, '0000': 0.149}
-    dimension = 2
-    n = 2
-    r = least_square_estimator(frequencies, tethrahedron(), dimension, n)
-    print(r)
+    rho_ls = least_square_estimator(tethrahedron(), frequencies)
+    print(rho_ls)
+    overlap = np.sqrt(np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T)))
+    print(overlap)
