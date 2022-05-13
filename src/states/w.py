@@ -62,6 +62,8 @@ def testWState(qc_size, w_state_size):
         assert value > lower_bound
 
 
+w_state_vector = np.array([[0, 0.70710678, 0.70710678, 0]])
+
 if __name__ == '__main__':
     qc_size = 3
     w_state_size = 3

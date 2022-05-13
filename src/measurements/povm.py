@@ -8,9 +8,11 @@ from qiskit.quantum_info.operators import Operator
 
 import numpy as np
 
-dividing = 12
-alpha = math.sqrt((3 + math.sqrt(3)) / dividing)
-beta = math.sqrt((3 - math.sqrt(3)) / dividing)
+from src.states.plus import plus_state_rho
+
+divisor = 12
+alpha = math.sqrt((3 + math.sqrt(3)) / divisor)
+beta = math.sqrt((3 - math.sqrt(3)) / divisor)
 
 def get_m():
     a = math.sqrt(2) * alpha
@@ -99,7 +101,7 @@ def pre_calculate_value(povm, dimension):
         m1 = (dimension + 1) * e[povm_index_map[value[0]]] - np.identity(dimension)
         m2 = (dimension + 1) * e[povm_index_map[value[1]]] - np.identity(dimension)
         # Not sure if I should use tensordot or kron
-        # tensor = np.tensordot(m1, m2, axes=1)
+        # tensor = np.tensordot(m1, m2, axes=0)
         tensor = np.kron(m1, m2)
         result[value[0] + value[1]] = tensor
 
@@ -141,9 +143,10 @@ if __name__ == '__main__':
     # counts = job.result().get_counts()
     # print(counts)
 
-    # Getting tr(Ex * rho) of plus state (|0> + |1>) / (m.sqrt(2)). rho == (<0| + <1|) / (m.sqrt(2))
-    # print(povm_test(plus_state_rho()))
+    # Getting tr(Ex * rho) of plus state (|0> + |1>) / (m.sqrt(2)).
+    print(povm_test(plus_state_rho()))
 
+    print()
     # Testing least squares estimator
     frequencies = {'1001': 0.007, '1010': 0.028, '0101': 0.014, '1000': 0.056, '1110': 0.032, '0100': 0.178, '1100': 0.051, '1011': 0.035, '0110': 0.111, '0011': 0.09, '0001': 0.013, '1101': 0.003, '1111': 0.024, '0111': 0.101, '0010': 0.108, '0000': 0.149}
     dimension = 2
