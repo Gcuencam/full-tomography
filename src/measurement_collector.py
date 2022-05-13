@@ -1,28 +1,39 @@
 # -*- coding: utf-8 -*-
+
 import numpy as np
 from qiskit import QuantumCircuit
 
-from .measurements.pauli import measure_pauli, getCartesianPauliBasis
-from .states.builder import build, States
-from .common.quantum_commons import debug_circuit, isDebugEnabled, expandCounts, countPovm, getProbabilities
+from .states.w import w_state_vector
+from .common.quantum_commons import debug_circuit, isDebugEnabled, expandCounts, getFrequencies
 from .common.quantum_commons import simulate
-from .measurements.povm import measure_povm
+from .states.builder import build, States
+from .measurements import pauli, sic_povm
 
 def collect_pauli_measurements(type, qc_size, shots, output_filename):
     qc = QuantumCircuit(qc_size, qc_size)
-    basis = getCartesianPauliBasis(qc_size)
+    basis = pauli.getCartesianPauliBasis(qc_size)
     measurements = []
+    ls_measurements = []
 
     for measurement_schema in basis:
         w_qc = build(type, qc, 0, qc_size)
-        measure_pauli(w_qc, measurement_schema)
+        pauli.measure_pauli(w_qc, measurement_schema)
         job = simulate(w_qc, shots)
         counts = job.result().get_counts()
         measurements = expandCounts(counts)
+        schema_frequencies = getFrequencies(counts, shots)
+        ls_measurements.append({
+            'schema': measurement_schema,
+            'frequencies': schema_frequencies
+        })
 
         if isDebugEnabled():
             debug_circuit(w_qc, counts, '')
     measurements = np.array(measurements)
+
+    rho_ls = pauli.least_square_estimator(ls_measurements)
+    overlap = np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T))[0][0]
+    print(np.sqrt(overlap))
 
     if isDebugEnabled():
         print(measurements)
@@ -32,17 +43,18 @@ def collect_pauli_measurements(type, qc_size, shots, output_filename):
     # np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
 
 
-def collect_povm_measurements(type, qc_size, shots, output_filename):
+def collect_sic_povm_measurements(type, qc_size, shots, output_filename):
     qc = QuantumCircuit(qc_size, qc_size)
     qc = build(type, qc, 0, qc_size)
-    # measured_circuit = plus_state(qc_size)
-    measured_circuit = measure_povm(qc)
+    # qc = plus_state()
+    measured_circuit = sic_povm.measure_povm(qc)
+    # measured_circuit = qc
 
     # Probabilities for measuring both qubits. In any measurement is applied in the circuit, this won't work.
     # psi = Statevector.from_instruction(measured_circuit)
     # probs = psi.probabilities_dict()
     # print('probs: {}'.format(probs))
-    # print(psi)
+    # print(np.array(psi))
 
     if isDebugEnabled():
         print(measured_circuit)
@@ -57,8 +69,12 @@ def collect_povm_measurements(type, qc_size, shots, output_filename):
     # np.savetxt(output_filename, measurements)
     # np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
 
-    povmCounts = countPovm(counts)
-    print(getProbabilities(povmCounts, shots))
+    frequencies = getFrequencies(counts, shots)
+    rho_ls = sic_povm.least_square_estimator(sic_povm.tetrahedron(), frequencies)
+
+    overlap = np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T))[0][0]
+    print(np.sqrt(overlap))
+
 
     # individualCounts = countPovmIndividual(counts)
     # print(individualCounts)

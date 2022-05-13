@@ -2,7 +2,7 @@ import getopt
 import os
 import sys
 
-from src.measurement_collector import collect_povm_measurements, collect_pauli_measurements
+from src.measurement_collector import collect_sic_povm_measurements, collect_pauli_measurements
 from src.states.builder import States
 
 os.environ['DEBUG'] = 'False'
@@ -23,7 +23,7 @@ def main(argv):
         if opt == '-h':
             print()
             sys.exit()
-        elif opt in ("-s", "--shoots"):
+        elif opt in ("-s", "--shots"):
             shots = int(arg)
         elif opt in ("-q", "--qubits"):
             qc_size = int(arg)
@@ -36,12 +36,12 @@ def main(argv):
         elif opt in ("-t", "--type"):
             state_type = States(arg)
 
-    if measurement_type == 'povm':
-        collect_povm_measurements(state_type, qc_size, shots, output_file_name)
+    if measurement_type == 'sic':
+        collect_sic_povm_measurements(state_type, qc_size, shots, output_file_name)
     elif measurement_type == 'pauli':
         collect_pauli_measurements(state_type, qc_size, shots, output_file_name)
     else:
-        print("wrong measurement type: valid options [povm | pauli]")
+        print("wrong measurement type: valid options [sic | pauli]")
 
 
 if __name__ == '__main__':
