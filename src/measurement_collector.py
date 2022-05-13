@@ -16,8 +16,8 @@ def collect_pauli_measurements(type, qc_size, shots, output_filename):
     qc = QuantumCircuit(qc_size, qc_size)
     basis = pauli.getCartesianPauliBasis(qc_size)
     measurements = []
+    ls_measurements = []
 
-    rho_ls = np.empty(2 ** qc_size)
     for measurement_schema in basis:
         w_qc = build(type, qc, 0, qc_size)
         pauli.measure_pauli(w_qc, measurement_schema)
@@ -25,15 +25,16 @@ def collect_pauli_measurements(type, qc_size, shots, output_filename):
         counts = job.result().get_counts()
         measurements = expandCounts(counts)
         schema_frequencies = getFrequencies(counts, shots)
-        partial_rho_ls = pauli.least_square_estimator(measurement_schema, schema_frequencies)
-        partial_overlap = np.sqrt(np.dot(w_state_vector, np.dot(partial_rho_ls, w_state_vector.T)))
-        print(partial_overlap)
-        rho_ls = rho_ls + partial_rho_ls
+        ls_measurements.append({
+            'schema': measurement_schema,
+            'frequencies': schema_frequencies
+        })
 
         if isDebugEnabled():
             debug_circuit(w_qc, counts, '')
     measurements = np.array(measurements)
 
+    rho_ls = pauli.least_square_estimator(ls_measurements)
     overlap = np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T))[0][0]
     print(np.sqrt(overlap))
 

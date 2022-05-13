@@ -86,7 +86,7 @@ pauli_projections = {
 }
 
 
-def least_square_estimator(schema, frequencies):
+def partial_least_square_estimator(schema, frequencies):
     tensor_frequencies = {}
     q_size = len(schema)
 
@@ -102,20 +102,38 @@ def least_square_estimator(schema, frequencies):
     for i, tensor_frequency in enumerate(tensor_frequencies):
         result = result + tensor_frequencies[tensor_frequency]
 
+    return result
+
+
+def least_square_estimator(measurements):
+    q_size = len(measurements[0])
+    result = np.empty((2 ** q_size))
+    for measurement in measurements:
+        schema = measurement['schema']
+        schema_frequencies = measurement['frequencies']
+        result = result + partial_least_square_estimator(schema, schema_frequencies)
+
     return result / (3 ** q_size)
 
 
 if __name__ == '__main__':
     qc_size = 2
-    basis = getCartesianPauliBasis(qc_size)
-    schema = basis[0]
+    settings = getCartesianPauliBasis(qc_size)
+    schema = settings[0]
     schema_frequencies = {
         '00': 0.25,
         '01': 0.25,
         '10': 0.25,
         '11': 0.25
     }
-    rho_ls = least_square_estimator(schema, schema_frequencies)
+    measurements = []
+    for setting in settings:
+        measurements.append({
+            'schema': setting,
+            'frequencies': schema_frequencies
+        })
+
+    rho_ls = least_square_estimator(measurements)
     print(rho_ls)
     overlap = np.sqrt(np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T)))
     print(overlap)
