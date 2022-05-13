@@ -87,7 +87,7 @@ def least_square_estimator(povm, frequencies):
     povm_dimension = list(povm['e_states'].values())[0].shape[0]
     n_qubits = len(list(frequencies.keys())[0]) / povm_dimension
 
-    result = np.zeros(povm_dimension ** 2)
+    result = np.zeros((povm_dimension ** 2))
     for i, state in enumerate(frequencies):
         kron = np.identity(1)
         for j in range(0, len(state), 2):
@@ -128,7 +128,20 @@ if __name__ == '__main__':
 
     print()
     # Testing least squares estimator
-    frequencies = {'1001': 0.007, '1010': 0.028, '0101': 0.014, '1000': 0.056, '1110': 0.032, '0100': 0.178, '1100': 0.051, '1011': 0.035, '0110': 0.111, '0011': 0.09, '0001': 0.013, '1101': 0.003, '1111': 0.024, '0111': 0.101, '0010': 0.108, '0000': 0.149}
+    frequencies = {
+      '0000': 0.0845,
+      '0010': 0.0842,
+      '0011': 0.0839,
+      '0101': 0.0818,
+      '0110': 0.0829,
+      '0111': 0.0782,
+      '1000': 0.0876,
+      '1001': 0.0851,
+      '1010': 0.0802,
+      '1100': 0.0837,
+      '1101': 0.0843,
+      '1111': 0.0836
+    }
     rho_ls = least_square_estimator(tethrahedron(), frequencies)
     print(rho_ls)
     overlap = np.sqrt(np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T)))

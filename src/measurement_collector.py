@@ -5,7 +5,7 @@ import numpy as np
 from qiskit import QuantumCircuit
 
 import src.measurements.pauli as pauli
-import src.measurements.povm as povm
+import src.measurements.sic_povm as sic_povm
 from src.states.w import w_state_vector
 from .common.quantum_commons import debug_circuit, isDebugEnabled, expandCounts, getFrequencies
 from .common.quantum_commons import simulate
@@ -46,11 +46,11 @@ def collect_pauli_measurements(type, qc_size, shots, output_filename):
     # np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
 
 
-def collect_povm_measurements(type, qc_size, shots, output_filename):
+def collect_sic_povm_measurements(type, qc_size, shots, output_filename):
     qc = QuantumCircuit(qc_size, qc_size)
     qc = build(type, qc, 0, qc_size)
     # qc = plus_state()
-    measured_circuit = povm.measure_povm(qc)
+    measured_circuit = sic_povm.measure_povm(qc)
     # measured_circuit = qc
 
     # Probabilities for measuring both qubits. In any measurement is applied in the circuit, this won't work.
@@ -73,11 +73,10 @@ def collect_povm_measurements(type, qc_size, shots, output_filename):
     # np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
 
     frequencies = getFrequencies(counts, shots)
-    rho_ls = povm.least_square_estimator(povm.tethrahedron(), frequencies)
-    print(rho_ls)
+    rho_ls = sic_povm.least_square_estimator(sic_povm.tethrahedron(), frequencies)
 
-    overlap = np.sqrt(np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T)))
-    print(overlap)
+    overlap = np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T))[0][0]
+    print(np.sqrt(overlap))
 
 
     # individualCounts = countPovmIndividual(counts)
