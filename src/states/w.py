@@ -5,7 +5,7 @@ import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Statevector
 
-from common.quantum_commons import simulate, debug_circuit
+from src.common.quantum_commons import simulate, debug_circuit
 
 
 def build(circuit, referencePosition: int, n: int):
