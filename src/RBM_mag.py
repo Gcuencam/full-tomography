@@ -5,23 +5,23 @@ import math
 import numpy as np
 
 
-class RBM(object):
+class RBM_mag(object):
     def __init__(self, nV, nH, w=None, b=None, c=None):
-        self._nV = nV
-        self._nH = nH
+        self.nV = nV
+        self.nH = nH
 
         # Initialization at 0 of the weight parameters.
-        self._w = np.zeros((self._nV, self._nH)) if w is None else w
-        self._b = np.zeros(self._nH) if b is None else b
-        self._c = np.zeros(self._nV) if c is None else c
+        self.w = np.zeros((self.nV, self.nH)) if w is None else w
+        self.b = np.zeros(self.nH) if b is None else b
+        self.c = np.zeros(self.nV) if c is None else c
 
     def getParams(self):
-        return self._w.copy(), self._b.copy(), self._c.copy()
+        return self.w.copy(), self.b.copy(), self.c.copy()
 
     def setParams(self, w, b, c):
-        self._w = w.copy()
-        self._b = b.copy()
-        self._c = c.copy()
+        self.w = w.copy()
+        self.b = b.copy()
+        self.c = c.copy()
 
     # Computes the sigmoid function for all the neurons of the layer.
     def sigmoid(self, X):
@@ -55,7 +55,7 @@ class RBM(object):
     # Runs the network forward. Given a configuration of the visible layer calculates
     # the hidden layer one.
     def forward(self, v):
-        p_hv = self._b + np.dot(v, self._w)
+        p_hv = self.b + np.dot(v, self.w)
         s = self.sigmoid(p_hv)
         h = self.activ(s)
         return h
@@ -68,7 +68,7 @@ class RBM(object):
             v (numpy.ndarray): stochastic value of the rebuilded visible layer
             s (numpy.ndarray): analytic value of the rebuilded visible layer
         """
-        p_vh = self._c + np.dot(self._w, h)
+        p_vh = self.c + np.dot(self.w, h)
         s = self.sigmoid(p_vh)
         v = self.activ(s)
         return v, s
@@ -96,9 +96,9 @@ class RBM(object):
     # Updates the weights and the bias.
     def updateParams(self, cumGrad_w, cumGrad_b, cumGrad_c, sBatch, learnRate):
         sLearnRate = learnRate / sBatch  # Adjusts the learning rate to the size of the batch.
-        self._w = self._w + sLearnRate * cumGrad_w
-        self._b = self._b + sLearnRate * cumGrad_b
-        self._c = self._c + sLearnRate * cumGrad_c
+        self.w = self.w + sLearnRate * cumGrad_w
+        self.b = self.b + sLearnRate * cumGrad_b
+        self.c = self.c + sLearnRate * cumGrad_c
         return
 
     # Implements the CD_K training algorithm with a division of the
@@ -110,9 +110,9 @@ class RBM(object):
             error = 0
             for iBatch in range(0, len(dataset), batch_size):
                 mini_batch = dataset[iBatch:iBatch + batch_size]
-                cumGrad_w = np.zeros((self._nV, self._nH))
-                cumGrad_b = np.zeros(self._nH)
-                cumGrad_c = np.zeros(self._nV)
+                cumGrad_w = np.zeros((self.nV, self.nH))
+                cumGrad_b = np.zeros(self.nH)
+                cumGrad_c = np.zeros(self.nV)
                 for data in mini_batch:
                     [h0, vk, hk, vs] = self.gibbsSampling(data, K)
                     [grad_w, grad_b, grad_c] = self.calculateGradients(data, h0, vk, hk)
@@ -129,7 +129,7 @@ class RBM(object):
                 print(str(int(pc)) + '% trained.')
         plt.plot(error_plot)
         plt.savefig('error.png')
-        return self._nV, self._nH, self._w, self._b, self._c
+        return self.nV, self.nH, self.w, self.b, self.c
 
     # Obtains a reconstruction of the input by running the network forward and backward.
     def run(self, v, K):
@@ -137,6 +137,8 @@ class RBM(object):
             h = self.forward(v)
             [v, s] = self.backward(h)
         return v
+    
+    
     
     # Obtains the 2^n possible basis.
     def Basis(self, n):
@@ -151,27 +153,35 @@ class RBM(object):
             basis.append(vec)
         return basis
     
-    # Calculates the amplitude represented by the network. (Formula 7 of Torlai's paper.)
-    def Amplitude(self, vec):
-        sumBias_v = np.dot(self._c,vec)
+    # Calculates the amplitude represented by the network for a given vector. (Formula 7 of Torlai's paper.)
+    def rho(self, vec):
+        sumBias_v = np.dot(self.c,vec)
         sum_i = 0
-        for i in range(self._nH):
+        for i in range(self.nH):
             sum_j = 0
-            for j in range(self._nV):
-                sum_j += self._w[j,i]*vec[j]
-            sum_i += math.log(1+math.exp(self._b[i]+sum_j))
-        amplitude = math.exp(sumBias_v + sum_i)
-        return amplitude
+            for j in range(self.nV):
+                sum_j += self.w[j,i]*vec[j]
+            sum_i += math.log(1+math.exp(self.b[i]+sum_j))
+        return math.exp(sumBias_v + sum_i)
+    
+    # Calculates the amplitude normalized for a given vector.
+    def waveF(self, sigma):
+        basis = self.Basis(self.nV)
+        Z = 0
+        for vec in basis:
+            Z += self.rho(vec)
+        return math.sqrt(self.rho(sigma)/Z)
+    
     
     # Calculates the squared overlap of the state represented by the network
     # and the target state.
-    def Overlap(self, basisT, n, k_gs):
+    def Squared_Overlap(self, basisT, n, k_gs):
         N = len(basisT)
-        basis = self.Basis(self._nV)
+        basis = self.Basis(self.nV)
 
         sum_n = 0
         for j in range(n):
-            indRand = np.random.randint(2**self._nV)
+            indRand = np.random.randint(2**self.nV)
             sigma_j = self.run(basis[indRand].copy(),k_gs)
             sum_N = 0
             flag = False
@@ -182,10 +192,10 @@ class RBM(object):
                     sum_N += 1/math.sqrt(N)
                 k += 1
             if sum_N != 0:
-                sum_n += sum_N/math.sqrt(self.Amplitude(sigma_j.copy()))
+                sum_n += sum_N/math.sqrt(self.rho(sigma_j.copy()))
         overlap = sum_n/n    
         sum_N = 0
         for k in range(N):
-            sum_N += math.sqrt(self.Amplitude(basisT[k].copy())/N)
+            sum_N += math.sqrt(self.rho(basisT[k].copy())/N)
         overlap = overlap*sum_N
         return overlap

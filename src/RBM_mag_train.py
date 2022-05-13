@@ -1,27 +1,30 @@
 # -*- coding: utf-8 -*-
 import time
 import numpy as np
-from RBM import RBM
+from RBM_mag import RBM_mag
 from configparser import ConfigParser
 
 visible_layers = 3
 hidden_layers = 3
 learning_rate = 0.1
-epochs = 100
+epochs = 1000
 batch_size = 10
 k = 1  # Number of iterations of Gibbs Sampling.
-dataset_filename = 'training.npy'
-network_file_path = 'setup.ini'
+dataset_filename = 'dataset/training_full_Z.txt'
+network_file_path = 'rbm_mag.ini'
 
-dataset = np.load(dataset_filename)
-
+dataset = np.loadtxt(dataset_filename)
+print(len(dataset),len(dataset[0]))
 # Creates the network.
-rbm = RBM(visible_layers, hidden_layers)
+rbm_mag = RBM_mag(visible_layers, hidden_layers)
 
 # Trains the network.
 t = time.time()
-nV, nH, w, b, c = rbm.CD_K(dataset, epochs, batch_size, k, learning_rate)
+nV, nH, w, b, c = rbm_mag.CD_K(dataset, epochs, batch_size, k, learning_rate)
 print('Elapsed time:', time.time() - t)
+
+
+
 
 # Saves the network.
 config = ConfigParser()
