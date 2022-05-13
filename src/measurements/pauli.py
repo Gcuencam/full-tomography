@@ -87,51 +87,46 @@ pauli_projections = {
 
 
 def partial_least_square_estimator(schema, frequencies):
-    tensor_frequencies = {}
     q_size = len(schema)
 
+    result = np.zeros(2 ** q_size)
     for i, state in enumerate(frequencies):
-        kron = np.empty((1, 1))
+        kron = np.identity(1)
         for j, qbit_state in enumerate(state):
             qbit_basis = schema[j]
             pauli_projection = 3 * pauli_projections[qbit_basis][qbit_state] - np.identity(2)
             kron = np.kron(kron, pauli_projection)
-        tensor_frequencies[state] = frequencies[state] * kron
-
-    result = np.empty((2 ** q_size))
-    for i, tensor_frequency in enumerate(tensor_frequencies):
-        result = result + tensor_frequencies[tensor_frequency]
+        result = result + (frequencies[state] * kron)
 
     return result
 
 
 def least_square_estimator(measurements):
     q_size = len(measurements[0])
-    result = np.empty((2 ** q_size))
+    result = np.zeros(1)
     for measurement in measurements:
         schema = measurement['schema']
         schema_frequencies = measurement['frequencies']
-        result = result + partial_least_square_estimator(schema, schema_frequencies)
+        partial_sum = partial_least_square_estimator(schema, schema_frequencies)
+        result = result + partial_sum
 
     return result / (3 ** q_size)
 
 
 if __name__ == '__main__':
     qc_size = 2
-    settings = getCartesianPauliBasis(qc_size)
-    schema = settings[0]
-    schema_frequencies = {
-        '00': 0.25,
-        '01': 0.25,
-        '10': 0.25,
-        '11': 0.25
-    }
-    measurements = []
-    for setting in settings:
-        measurements.append({
-            'schema': setting,
-            'frequencies': schema_frequencies
-        })
+    # Result with 1000000 shots
+    measurements = [
+        {'schema': [PauliBasis.X, PauliBasis.X], 'frequencies': {'11': 0.499732, '00': 0.500268}},
+        {'schema': [PauliBasis.X, PauliBasis.Y], 'frequencies': {'01': 0.249122, '11': 0.250884, '00': 0.250373, '10': 0.249621}},
+        {'schema': [PauliBasis.X, PauliBasis.Z], 'frequencies': {'01': 0.249319, '10': 0.24989, '00': 0.250122, '11': 0.250669}},
+        {'schema': [PauliBasis.Y, PauliBasis.X], 'frequencies': {'11': 0.250305, '10': 0.249746, '00': 0.249751, '01': 0.250198}},
+        {'schema': [PauliBasis.Y, PauliBasis.Y], 'frequencies': {'11': 0.499842, '00': 0.500158}},
+        {'schema': [PauliBasis.Y, PauliBasis.Z], 'frequencies': {'11': 0.249783, '10': 0.250408, '00': 0.249202, '01': 0.250607}},
+        {'schema': [PauliBasis.Z, PauliBasis.X], 'frequencies': {'11': 0.250426, '00': 0.250012, '10': 0.249633, '01': 0.249929}},
+        {'schema': [PauliBasis.Z, PauliBasis.Y], 'frequencies': {'01': 0.250013, '10': 0.250427, '00': 0.250285, '11': 0.249275}},
+        {'schema': [PauliBasis.Z, PauliBasis.Z], 'frequencies': {'10': 0.499241, '01': 0.500759}}
+    ]
 
     rho_ls = least_square_estimator(measurements)
     print(rho_ls)
