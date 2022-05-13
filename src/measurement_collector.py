@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-import collections
 
 import numpy as np
 from qiskit import QuantumCircuit
 
 import src.measurements.pauli as pauli
 import src.measurements.sic_povm as sic_povm
-from src.states.w import w_state_vector
+from .states.w import w_state_vector
 from .common.quantum_commons import debug_circuit, isDebugEnabled, expandCounts, getFrequencies
 from .common.quantum_commons import simulate
 from .states.builder import build, States

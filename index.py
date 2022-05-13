@@ -23,7 +23,7 @@ def main(argv):
         if opt == '-h':
             print()
             sys.exit()
-        elif opt in ("-s", "--shoots"):
+        elif opt in ("-s", "--shots"):
             shots = int(arg)
         elif opt in ("-q", "--qubits"):
             qc_size = int(arg)
