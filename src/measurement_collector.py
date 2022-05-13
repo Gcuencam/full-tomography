@@ -3,12 +3,12 @@
 import numpy as np
 from qiskit import QuantumCircuit
 
-import src.measurements.pauli as pauli
-import src.measurements.sic_povm as sic_povm
 from .states.w import w_state_vector
 from .common.quantum_commons import debug_circuit, isDebugEnabled, expandCounts, getFrequencies
 from .common.quantum_commons import simulate
 from .states.builder import build, States
+from .measurements import pauli
+from .measurements import sic_povm
 
 
 def collect_pauli_measurements(type, qc_size, shots, output_filename):
