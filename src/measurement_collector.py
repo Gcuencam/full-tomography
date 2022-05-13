@@ -73,7 +73,7 @@ def collect_sic_povm_measurements(type, qc_size, shots, output_filename):
     # np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
 
     frequencies = getFrequencies(counts, shots)
-    rho_ls = sic_povm.least_square_estimator(sic_povm.tethrahedron(), frequencies)
+    rho_ls = sic_povm.least_square_estimator(sic_povm.tetrahedron(), frequencies)
 
     overlap = np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T))[0][0]
     print(np.sqrt(overlap))

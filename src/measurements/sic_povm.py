@@ -14,6 +14,7 @@ divisor = 12
 alpha = math.sqrt((3 + math.sqrt(3)) / divisor)
 beta = math.sqrt((3 - math.sqrt(3)) / divisor)
 
+
 def get_m():
     a = math.sqrt(2) * alpha
     b = math.sqrt(2) * beta
@@ -51,7 +52,8 @@ def measure_povm(qc):
 
     return expanded_circuit
 
-def tethrahedron():
+
+def tetrahedron():
     v_ket = [
         np.array([[alpha, beta]]).T,
         np.array([[alpha, -beta]]).T,
@@ -81,6 +83,7 @@ def tethrahedron():
         }
     }
 
+
 def least_square_estimator(povm, frequencies):
     e_states = povm['e_states']
     povm_dimension = list(povm['e_states'].values())[0].shape[0]
@@ -99,8 +102,8 @@ def least_square_estimator(povm, frequencies):
 
 
 # Test to get tr(Ex * rho)
-def tethrahedron_test(rho):
-    povm = tethrahedron()
+def tetrahedron_test(rho):
+    povm = tetrahedron()
     e = povm['e']
     povm_size = len(povm['kets'])
 
@@ -112,28 +115,30 @@ def tethrahedron_test(rho):
 
     return result
 
+
 def least_squares_test():
     # Testing least squares estimator
     w_state_frequencies = {
         '0000': 0.0845,
-      # '0001': 0,
+        # '0001': 0,
         '0010': 0.0842,
         '0011': 0.0839,
-      # '0100': 0,
+        # '0100': 0,
         '0101': 0.0818,
         '0110': 0.0829,
         '0111': 0.0782,
         '1000': 0.0876,
         '1001': 0.0851,
         '1010': 0.0802,
-      # '1011': 0,
+        # '1011': 0,
         '1100': 0.0837,
         '1101': 0.0843,
-      # '1110': 0,
+        # '1110': 0,
         '1111': 0.0836
     }
-    rho_ls = least_square_estimator(tethrahedron(), w_state_frequencies)
+    rho_ls = least_square_estimator(tetrahedron(), w_state_frequencies)
     return np.sqrt(np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T))[0][0])
+
 
 if __name__ == '__main__':
     # qc_size = 2
@@ -146,5 +151,5 @@ if __name__ == '__main__':
     # print(counts)
 
     # Getting tr(Ex * rho) of plus state (|0> + |1>) / (m.sqrt(2)).
-    print(tethrahedron_test(plus_state_rho()))
+    print(tetrahedron_test(plus_state_rho()))
     print(least_squares_test())
