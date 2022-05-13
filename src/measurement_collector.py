@@ -7,9 +7,7 @@ from .states.w import w_state_vector
 from .common.quantum_commons import debug_circuit, isDebugEnabled, expandCounts, getFrequencies
 from .common.quantum_commons import simulate
 from .states.builder import build, States
-from .measurements import pauli
-from .measurements import sic_povm
-
+from .measurements import pauli, sic_povm
 
 def collect_pauli_measurements(type, qc_size, shots, output_filename):
     qc = QuantumCircuit(qc_size, qc_size)
