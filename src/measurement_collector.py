@@ -1,28 +1,43 @@
 # -*- coding: utf-8 -*-
+
 import numpy as np
 from qiskit import QuantumCircuit
 
-from .measurements.pauli import measure_pauli, getCartesianPauliBasis
-from .states.builder import build, States
-from .common.quantum_commons import debug_circuit, isDebugEnabled, expandCounts, countPovm, getProbabilities
-from .common.quantum_commons import simulate
-from .measurements.povm import measure_povm
+from sys import path
+path.append("../")
+from src.states.ghz import get_ghz_state_vector
+from src.states.plus import get_plus_state_vector
+from src.common.quantum_commons import debug_circuit, isDebugEnabled, expandCounts, getFrequencies
+from src.common.quantum_commons import simulate
+from src.measurements import pauli, sic_povm
+from src.states.builder import build, States
+from src.states.w import get_w_state_vector
+
 
 def collect_pauli_measurements(type, qc_size, shots, output_filename):
     qc = QuantumCircuit(qc_size, qc_size)
-    basis = getCartesianPauliBasis(qc_size)
+    basis = pauli.getCartesianPauliBasis(qc_size)
     measurements = []
+    ls_measurements = []
 
     for measurement_schema in basis:
         w_qc = build(type, qc, 0, qc_size)
-        measure_pauli(w_qc, measurement_schema)
+        pauli.measure_pauli(w_qc, measurement_schema)
         job = simulate(w_qc, shots)
         counts = job.result().get_counts()
         measurements = expandCounts(counts)
+        schema_frequencies = getFrequencies(counts, shots)
+        ls_measurements.append({
+            'schema': measurement_schema,
+            'frequencies': schema_frequencies
+        })
 
         if isDebugEnabled():
             debug_circuit(w_qc, counts, '')
     measurements = np.array(measurements)
+
+    rho_ls = pauli.least_square_estimator(ls_measurements)
+    print(overlap(type, rho_ls, qc_size))
 
     if isDebugEnabled():
         print(measurements)
@@ -32,17 +47,18 @@ def collect_pauli_measurements(type, qc_size, shots, output_filename):
     # np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
 
 
-def collect_povm_measurements(type, qc_size, shots, output_filename):
+def collect_sic_povm_measurements(type, qc_size, shots, output_filename):
     qc = QuantumCircuit(qc_size, qc_size)
     qc = build(type, qc, 0, qc_size)
-    # measured_circuit = plus_state(qc_size)
-    measured_circuit = measure_povm(qc)
+    # qc = plus_state()
+    measured_circuit = sic_povm.measure_povm(qc)
+    # measured_circuit = qc
 
     # Probabilities for measuring both qubits. In any measurement is applied in the circuit, this won't work.
     # psi = Statevector.from_instruction(measured_circuit)
     # probs = psi.probabilities_dict()
     # print('probs: {}'.format(probs))
-    # print(psi)
+    # print(np.array(psi))
 
     if isDebugEnabled():
         print(measured_circuit)
@@ -57,8 +73,11 @@ def collect_povm_measurements(type, qc_size, shots, output_filename):
     # np.savetxt(output_filename, measurements)
     # np.savetxt(output_filename, measurements, fmt='%s,', newline='\n', header='[', footer=']', comments='')
 
-    povmCounts = countPovm(counts)
-    print(getProbabilities(povmCounts, shots))
+    frequencies = getFrequencies(counts, shots)
+    rho_ls = sic_povm.least_square_estimator(sic_povm.tetrahedron(), frequencies)
+
+    print(overlap(type, rho_ls, qc_size))
+
 
     # individualCounts = countPovmIndividual(counts)
     # print(individualCounts)
@@ -72,7 +91,19 @@ def collect_povm_measurements(type, qc_size, shots, output_filename):
     # print('Q1: 00: ' + str(probs[2]['00']) + ', 01: ' + str(probs[2]['01']) + ', 10: ' + str(probs[2]['10']) + ', 11: ' + str(probs[2]['11']))
     # print('Q2: 00: ' + str(probs[4]['00']) + ', 01: ' + str(probs[4]['01']) + ', 10: ' + str(probs[4]['10']) + ', 11: ' + str(probs[4]['11']))
 
-
+def overlap(type, rho_ls, q_size):
+    if type == States.W:
+        state_vector = get_w_state_vector(q_size)
+        overlap = np.dot(state_vector, np.dot(rho_ls, state_vector.T))
+        return np.sqrt(overlap)
+    if type == States.Plus:
+        state_vector = get_plus_state_vector(q_size)
+        overlap = np.dot(state_vector, np.dot(rho_ls, state_vector.T))
+        return np.sqrt(overlap)
+    if type == States.GHZ:
+        state_vector = get_ghz_state_vector(q_size)
+        overlap = np.dot(state_vector, np.dot(rho_ls, state_vector.T))
+        return np.sqrt(overlap)
 
 if __name__ == '__main__':
     qc_size = 3

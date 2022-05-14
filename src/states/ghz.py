@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import numpy as np
 from qiskit import QuantumCircuit
-from qiskit.providers.aer import AerSimulator
+from qiskit.quantum_info import Statevector
 
 
 def build(qc, ref_pos, n):
@@ -13,12 +14,13 @@ def build(qc, ref_pos, n):
     return qc
 
 
-# Testing the circuit.
-# backend = AerSimulator()
-# n = 10
-# qc = QuantumCircuit(n)
-# build(qc, n)
-# qc.measure_all()
-# display(qc.draw('mpl'))
-# counts = backend.run(qc).result().get_counts()
-# print(counts)
+def get_ghz_state_vector(qc_size):
+    circuit = QuantumCircuit(qc_size, qc_size)
+    ghz_qc = build(circuit, 0, qc_size)
+    psi = Statevector.from_instruction(ghz_qc)
+    return np.array(psi)
+
+
+if __name__ == '__main__':
+    qc_size = 2
+    print(get_ghz_state_vector(qc_size))

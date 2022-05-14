@@ -4,7 +4,7 @@ Created on Fri Feb 25 19:42:48 2022
 
 @author: Pedro
 """
-
+import collections
 import os
 
 from qiskit import transpile
@@ -75,7 +75,7 @@ def countPovm(counts):
     return qbits_count
 
 
-def getProbabilities(qbits_count, shots):
+def getSingleQubitProbabilities(qbits_count, shots):
     probs = {}
     for q_index in qbits_count:
         q_bit_count = qbits_count[q_index]
@@ -87,6 +87,13 @@ def getProbabilities(qbits_count, shots):
                 probs[q_index] = {}
                 probs[q_index][q_bit_measurement] = counts / shots
     return probs
+
+def getFrequencies(counts, shots):
+    probs = {}
+    for state_index, state in enumerate(counts):
+        probs[state] = counts[state] / shots
+
+    return collections.OrderedDict(sorted(probs.items()))
 
 
 def expandCounts(counts):

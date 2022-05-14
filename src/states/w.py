@@ -5,7 +5,7 @@ import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Statevector
 
-from common.quantum_commons import simulate, debug_circuit
+from src.common.quantum_commons import simulate, debug_circuit
 
 
 def build(circuit, referencePosition: int, n: int):
@@ -62,7 +62,15 @@ def testWState(qc_size, w_state_size):
         assert value > lower_bound
 
 
+def get_w_state_vector(qc_size):
+    circuit = QuantumCircuit(qc_size, qc_size)
+    w_qc = build(circuit, 0, qc_size)
+    psi = Statevector.from_instruction(w_qc)
+    return np.array(psi)
+
+
 if __name__ == '__main__':
     qc_size = 3
     w_state_size = 3
     testWState(qc_size, w_state_size)
+    get_w_state_vector(2)
