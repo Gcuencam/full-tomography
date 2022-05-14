@@ -2,6 +2,9 @@ from qiskit import QuantumCircuit
 from qiskit_experiments.library import StateTomography
 from qiskit.providers.aer import AerSimulator
 import numpy as np
+
+from sys import path
+path.append("../../")
 from src.states import w, ghz, plus
 from src.states.ghz import get_ghz_state_vector
 from src.states.plus import get_plus_state_vector

@@ -130,5 +130,6 @@ if __name__ == '__main__':
 
     rho_ls = least_square_estimator(measurements)
     print(rho_ls)
-    overlap = np.sqrt(np.dot(get_w_state_vector(qc_size), np.dot(rho_ls, get_w_state_vector(qc_size).T)))
+    state_vector = get_w_state_vector(qc_size)
+    overlap = np.sqrt(np.dot(state_vector, np.dot(rho_ls, state_vector.T)))
     print(overlap)

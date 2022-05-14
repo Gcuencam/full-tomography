@@ -3,13 +3,15 @@
 import numpy as np
 from qiskit import QuantumCircuit
 
+from sys import path
+path.append("../")
 from src.states.ghz import get_ghz_state_vector
 from src.states.plus import get_plus_state_vector
-from .common.quantum_commons import debug_circuit, isDebugEnabled, expandCounts, getFrequencies
-from .common.quantum_commons import simulate
-from .measurements import pauli, sic_povm
-from .states.builder import build, States
-from .states.w import get_w_state_vector
+from src.common.quantum_commons import debug_circuit, isDebugEnabled, expandCounts, getFrequencies
+from src.common.quantum_commons import simulate
+from src.measurements import pauli, sic_povm
+from src.states.builder import build, States
+from src.states.w import get_w_state_vector
 
 
 def collect_pauli_measurements(type, qc_size, shots, output_filename):
