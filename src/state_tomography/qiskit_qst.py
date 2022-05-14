@@ -31,9 +31,8 @@ def w_state_tomography(qc_size, shots):
     print(overlap)
     # print('probs: {}'.format(density_matrix.probabilities()))
 
-def plus_state_tomography(shots):
+def plus_state_tomography(qc_size, shots):
     print('Plus state tomography')
-    qc_size = 1
     circuit = QuantumCircuit(qc_size, qc_size)
     plus_qc = plus.build(circuit, 0, qc_size)
     density_matrix = tomography(plus_qc, shots)
@@ -58,5 +57,5 @@ if __name__ == '__main__':
     qc_size = 4
     shots = 1000
     w_state_tomography(qc_size, shots)
-    plus_state_tomography(shots)
+    plus_state_tomography(qc_size, shots)
     ghz_state_tomography(qc_size, shots)
