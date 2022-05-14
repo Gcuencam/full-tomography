@@ -11,7 +11,7 @@ from src.states.w import w_state_vector
 def tomography(qc, shots):
     # QST Experiment
     qstexp1 = StateTomography(qc)
-    qstdata1 = qstexp1.run(AerSimulator(), seed_simulation=1000, shots=shots).block_for_results()
+    qstdata1 = qstexp1.run(AerSimulator(), seed_simulation=100, shots=shots).block_for_results()
 
     state_result = qstdata1.analysis_results("state")
     density_matrix = state_result.value
@@ -26,7 +26,7 @@ def w_state_tomography(qc_size, shots):
 
     overlap = np.sqrt(np.dot(w_state_vector, np.dot(density_matrix, w_state_vector.T)))
     print(overlap)
-    print('probs: {}'.format(probs))
+    # print('probs: {}'.format(probs))
 
 def plus_state_tomography(shots):
     print('Plus state tomography')
@@ -38,7 +38,7 @@ def plus_state_tomography(shots):
 
     overlap = np.sqrt(np.dot(plus_state_vector, np.dot(density_matrix, plus_state_vector.T)))
     print(overlap)
-    print('probs: {}'.format(probs))
+    # print('probs: {}'.format(probs))
 
 def ghz_state_tomography(qc_size, shots):
     print('Plus state tomography')
@@ -49,11 +49,11 @@ def ghz_state_tomography(qc_size, shots):
 
     overlap = np.sqrt(np.dot(ghz_state_vector, np.dot(density_matrix, ghz_state_vector.T)))
     print(overlap)
-    print('probs: {}'.format(probs))
+    # print('probs: {}'.format(probs))
 
 if __name__ == '__main__':
     qc_size = 2
-    shots = 100
+    shots = 1000
     w_state_tomography(qc_size, shots)
     plus_state_tomography(shots)
     ghz_state_tomography(qc_size, shots)
