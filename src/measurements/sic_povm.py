@@ -86,10 +86,10 @@ def tetrahedron():
 
 def least_square_estimator(povm, frequencies):
     e_states = povm['e_states']
-    povm_dimension = list(povm['e_states'].values())[0].shape[0]
-    n_qubits = len(list(frequencies.keys())[0]) / povm_dimension
+    povm_dimension = int(list(povm['e_states'].values())[0].shape[0])
+    n_qubits = int(len(list(frequencies.keys())[0]) / povm_dimension)
 
-    result = np.zeros((povm_dimension ** 2))
+    result = np.zeros((povm_dimension ** n_qubits))
     for i, state in enumerate(frequencies):
         kron = np.identity(1)
         for j in range(0, len(state), 2):

@@ -102,7 +102,7 @@ def partial_least_square_estimator(schema, frequencies):
 
 
 def least_square_estimator(measurements):
-    q_size = len(measurements[0])
+    q_size = len(measurements[0]['schema'])
     result = np.zeros((2 ** q_size))
     for measurement in measurements:
         schema = measurement['schema']
