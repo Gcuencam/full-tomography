@@ -62,9 +62,15 @@ def testWState(qc_size, w_state_size):
         assert value > lower_bound
 
 
-w_state_vector = np.array([[0, m.sqrt(2), m.sqrt(2), 0]]) / 2
+def get_w_state_vector(qc_size):
+    circuit = QuantumCircuit(qc_size, qc_size)
+    w_qc = build(circuit, 0, qc_size)
+    psi = Statevector.from_instruction(w_qc)
+    return np.array(psi)
+
 
 if __name__ == '__main__':
     qc_size = 3
     w_state_size = 3
     testWState(qc_size, w_state_size)
+    get_w_state_vector(2)

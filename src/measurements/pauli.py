@@ -2,7 +2,7 @@ import itertools
 from enum import Enum
 import numpy as np
 from src.common.quantum_commons import isDebugEnabled
-from src.states.w import w_state_vector
+from src.states.w import get_w_state_vector
 
 
 class PauliBasis(Enum):
@@ -130,5 +130,5 @@ if __name__ == '__main__':
 
     rho_ls = least_square_estimator(measurements)
     print(rho_ls)
-    overlap = np.sqrt(np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T)))
+    overlap = np.sqrt(np.dot(get_w_state_vector(qc_size), np.dot(rho_ls, get_w_state_vector(qc_size).T)))
     print(overlap)

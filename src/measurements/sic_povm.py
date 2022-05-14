@@ -8,7 +8,7 @@ from qiskit.quantum_info.operators import Operator
 import numpy as np
 
 from src.states.plus import plus_state_rho
-from src.states.w import w_state_vector
+from src.states.w import get_w_state_vector
 
 divisor = 12
 alpha = math.sqrt((3 + math.sqrt(3)) / divisor)
@@ -137,7 +137,8 @@ def least_squares_test():
         '1111': 0.0836
     }
     rho_ls = least_square_estimator(tetrahedron(), w_state_frequencies)
-    return np.sqrt(np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T))[0][0])
+    w_state_vector = get_w_state_vector(2)
+    return np.sqrt(np.dot(w_state_vector, np.dot(rho_ls, w_state_vector.T)))
 
 
 if __name__ == '__main__':
