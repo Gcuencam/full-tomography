@@ -1,4 +1,6 @@
 import getopt
+import time
+from enum import Enum
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,15 +9,18 @@ from qiskit import QuantumCircuit
 from qiskit.providers.aer import AerSimulator
 from qiskit_experiments.library import StateTomography
 from sys import path
-
-path.append("../../")
-from src.states import w, ghz, plus
-from src.states.ghz import get_ghz_state_vector
-from src.states.plus import get_plus_state_vector
-from src.states.w import get_w_state_vector
+path.append(".")
+from src.common.quantum_commons import simulate, getFrequencies
+from src.measurements import sic_povm, pauli
+from src.states.builder import build, get_state_vector, States
 
 
-def tomography(qc, shots):
+class ChartType(Enum):
+    Overlaps = 'overlaps'
+    Time = 'time'
+
+
+def qiski_tomography(qc, shots):
     # QST Experiment
     qstexp1 = StateTomography(qc)
     qstdata1 = qstexp1.run(AerSimulator(), seed_simulation=100, shots=shots).block_for_results()
@@ -24,83 +29,112 @@ def tomography(qc, shots):
     density_matrix = state_result.value
     return density_matrix
 
+def manual_tomography(type, qc_size, shots, measurement_type):
 
-def w_state_tomography(qc_size, shots):
-    print('W state tomography')
-    circuit = QuantumCircuit(qc_size, qc_size)
-    w_qc = w.build(circuit, 0, qc_size)
-    density_matrix = tomography(w_qc, shots)
+    rho_ls = []
+    if measurement_type == 'sic':
+        qc = QuantumCircuit(qc_size, qc_size)
+        qc = build(type, qc, 0, qc_size)
+        measured_circuit = sic_povm.measure_povm(qc)
 
-    state_vector = get_w_state_vector(qc_size)
+        job = simulate(measured_circuit, shots)
+        counts = job.result().get_counts()
+
+        frequencies = getFrequencies(counts, shots)
+        rho_ls = sic_povm.least_square_estimator(sic_povm.tetrahedron(), frequencies)
+
+    if measurement_type == 'pauli':
+        qc = QuantumCircuit(qc_size, qc_size)
+        basis = pauli.getCartesianPauliBasis(qc_size)
+        ls_measurements = []
+
+        for measurement_schema in basis:
+            w_qc = build(type, qc, 0, qc_size)
+            pauli.measure_pauli(w_qc, measurement_schema)
+            job = simulate(w_qc, shots)
+            counts = job.result().get_counts()
+            schema_frequencies = getFrequencies(counts, shots)
+            ls_measurements.append({
+                'schema': measurement_schema,
+                'frequencies': schema_frequencies
+            })
+
+        rho_ls = pauli.least_square_estimator(ls_measurements)
+
+    return rho_ls
+
+
+def perform_state_tomography(type, qc_size, shots):
+    qc = build(type, QuantumCircuit(qc_size, qc_size), 0, qc_size)
+
+    # density_matrix = qiski_tomography(qc, shots)
+    density_matrix = manual_tomography(type, qc_size, shots, 'sic')
+
+    state_vector = get_state_vector(type, qc_size)
     overlap = np.sqrt(np.dot(state_vector, np.dot(density_matrix, state_vector.T)))
     print(overlap)
     return overlap
     # print('probs: {}'.format(density_matrix.probabilities()))
 
 
-def plus_state_tomography(qc_size, shots):
-    print('Plus state tomography')
-    circuit = QuantumCircuit(qc_size, qc_size)
-    plus_qc = plus.build(circuit, 0, qc_size)
-    density_matrix = tomography(plus_qc, shots)
-
-    state_vector = get_plus_state_vector(qc_size)
-    overlap = np.sqrt(np.dot(state_vector, np.dot(density_matrix, state_vector.T)))
-    print(overlap)
-    return overlap
-    # print('probs: {}'.format(density_matrix.probabilities()))
-
-
-def ghz_state_tomography(qc_size, shots):
-    print('Plus state tomography')
-    circuit = QuantumCircuit(qc_size, qc_size)
-    ghz_qc = ghz.build(circuit, 0, qc_size)
-    density_matrix = tomography(ghz_qc, shots)
-
-    state_vector = get_ghz_state_vector(qc_size)
-    overlap = np.sqrt(np.dot(state_vector, np.dot(density_matrix, state_vector.T)))
-    print(overlap)
-    return overlap
-    # print('probs: {}'.format(density_matrix.probabilities()))
+def append_result(results, experiment_state, qc_size, state_overlaps, time_profile, ):
+    if experiment_state in results:
+        results[experiment_state][qc_size] = {
+            ChartType.Overlaps: state_overlaps,
+            ChartType.Time: time_profile
+        }
+    else:
+        results[experiment_state] = {
+            qc_size: {
+                ChartType.Overlaps: state_overlaps,
+                ChartType.Time: time_profile
+            }
+        }
 
 
 def experiment(q_bits_range, shots_range):
-    overlaps = {}
+    results = {}
     for qc_size in q_bits_range:
         w_state_overlaps = {}
+        w_state_time_profile = {}
         ghz_state_overlaps = {}
+        ghz_state_time_profile = {}
         for shots in shots_range:
-            w_state_overlaps[shots] = w_state_tomography(qc_size, shots)
-            # plus_state_tomography(qc_size, shots)
-            ghz_state_overlaps[shots] = ghz_state_tomography(qc_size, shots)
+            print('Performing %s experiment with %s qubits and %s shots' % (States.W, qc_size, shots))
+            ts = time.time()
+            w_state_overlaps[shots] = perform_state_tomography(States.W, qc_size, shots)
+            w_state_time_profile[shots] = time.time() - ts
 
-        if "w_state" in overlaps:
-            overlaps["w_state"][qc_size] = w_state_overlaps
-        else:
-            overlaps["w_state"] = {
-                qc_size: w_state_overlaps,
-            }
+            ts = time.time()
+            ghz_state_overlaps[shots] = perform_state_tomography(States.GHZ, qc_size, shots)
+            ghz_state_time_profile[shots] = time.time() - ts
 
-        if "ghz_state" in overlaps:
-            overlaps["ghz_state"][qc_size] = w_state_overlaps
-        else:
-            overlaps["ghz_state"] = {
-                qc_size: w_state_overlaps,
-            }
+        append_result(results, States.W, qc_size, w_state_overlaps, w_state_time_profile)
+        append_result(results, States.GHZ, qc_size, ghz_state_overlaps, ghz_state_time_profile)
 
-    for i, state_key in enumerate(overlaps):
-        state = overlaps[state_key]
+    generate_charts(results, ChartType.Overlaps)
+    generate_charts(results, ChartType.Time)
+
+
+def generate_charts(results, chart_type):
+    for i, state_key in enumerate(results):
+        state = results[state_key]
+        legend = []
         for j, qubit_size in enumerate(state):
-            title = '%s with %s qubits' % (state_key, qubit_size)
-            plt.title(title)
-            plt.xlabel("Shots")
-            plt.ylabel("Overlap")
-            overlaps_by_qubit_size = state[qubit_size]
+            overlaps_by_qubit_size = state[qubit_size][chart_type]
             x_axis = overlaps_by_qubit_size.keys()
             y_axis = overlaps_by_qubit_size.values()
             plt.plot(x_axis, y_axis)
-            plt.savefig('%s%s%s.png' % (i, j, title))
-            plt.clf()
+            legend.append('%s qubits' % qubit_size)
+
+        title = state_key
+        plt.legend(legend)
+        plt.xlabel("N")
+        plt.ylabel(chart_type)
+        # plt.title(title)
+        plt.savefig('%s_chart_%s.png' % (chart_type, title))
+        plt.clf()
+
 
 def main(argv):
     q_bits_lower_limit = 0
@@ -111,7 +145,8 @@ def main(argv):
     p_help = 'qiskit_qst.py --q_bits_lower_limit=<q_bits_lower_limit> --q_bits_upper_limit=<q_bits_upper_limit> --shots_lower_limit=<shots_lower_limit> --shots_upper_limit=<shots_upper_limit> --shots_pace=<shots_pace>'
 
     try:
-        opts, args = getopt.getopt(argv, "", ["q_bits_lower_limit=", "q_bits_upper_limit=", "shots_lower_limit=", "shots_upper_limit=", "shots_pace="])
+        opts, args = getopt.getopt(argv, "", ["q_bits_lower_limit=", "q_bits_upper_limit=", "shots_lower_limit=",
+                                              "shots_upper_limit=", "shots_pace="])
     except getopt.GetoptError:
         print(p_help)
         sys.exit(2)
@@ -120,21 +155,22 @@ def main(argv):
         if opt == '-h':
             print(p_help)
             sys.exit()
-        elif opt in ("-qll", "--q_bits_lower_limit"):
+        elif opt == "--q_bits_lower_limit":
             q_bits_lower_limit = int(arg)
-        elif opt in ("-qul", "--q_bits_upper_limit"):
+        elif opt == "--q_bits_upper_limit":
             q_bits_upper_limit = int(arg)
-        elif opt in ("-sll", "--shots_lower_limit"):
+        elif opt == "--shots_lower_limit":
             shots_lower_limit = int(arg)
-        elif opt in ("-sul", "--shots_upper_limit"):
+        elif opt == "--shots_upper_limit":
             shots_upper_limit = int(arg)
-        elif opt in ("-sp", "--shots_pace"):
+        elif opt == "--shots_pace":
             shots_pace = int(arg)
 
-    q_bits_range = range(q_bits_lower_limit, q_bits_upper_limit)
-    shots_range = range(shots_lower_limit, shots_upper_limit, shots_pace)
+    q_bits_range = range(q_bits_lower_limit, q_bits_upper_limit + 1)
+    shots_range = range(shots_lower_limit, shots_upper_limit + shots_pace, shots_pace)
 
     experiment(q_bits_range, shots_range)
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
