@@ -92,8 +92,8 @@ def partial_least_square_estimator(schema, frequencies):
     result = np.zeros((2 ** q_size))
     for i, state in enumerate(frequencies):
         kron = np.identity(1)
-        for j, qbit_state in enumerate(state):
-            qbit_basis = schema[j]
+        for qubit_index, qbit_state in enumerate(state):
+            qbit_basis = schema[qubit_index]
             pauli_projection = 3 * pauli_projections[qbit_basis][qbit_state] - np.identity(2)
             kron = np.kron(kron, pauli_projection)
         result = result + (frequencies[state] * kron)

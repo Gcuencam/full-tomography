@@ -16,7 +16,7 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv, "dhs:q:o:m:t:", ["shots=", "qubits=", "output=", "measurement=", "type="])
     except getopt.GetoptError:
-        print('test.py -s <shoots_number> -q <qubits_number> -o <filename> -d -t type')
+        print('test.py -s <shots_number> -q <qubits_number> -o <filename> -d -t type')
         sys.exit(2)
 
     for opt, arg in opts:
