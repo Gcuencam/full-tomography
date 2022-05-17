@@ -16,6 +16,11 @@ pip install -r requirements.txt
 source venv/bin/activate
 ```
 
+## How to run qiskit state tomography
+```shell
+python3 qiskit_qst.py --q_bits_lower_limit=2 --q_bits_upper_limit=5 --shots_lower_limit=100 --shots_upper_limit=1000 --shots_pace=50 --output_folder=new_data5qbits1000shots
+```
+
 ## How to run the code
 ```shell
 # -s is the number of shots that each circuit will be executed
