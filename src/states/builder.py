@@ -2,7 +2,7 @@ from . import w, ghz, plus
 from enum import Enum
 
 
-class States(Enum):
+class States(str, Enum):
     W = 'w'
     GHZ = 'ghz'
     Plus = '+'

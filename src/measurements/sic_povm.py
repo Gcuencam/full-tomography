@@ -94,11 +94,19 @@ def least_square_estimator(povm, frequencies):
         kron = np.identity(1)
         for j in range(0, len(state), 2):
             qbit_state = state[j] + state[j + 1]
+            # n qubits does not work
             povm_i = (povm_dimension + 1) * e_states[qbit_state] - np.identity(povm_dimension)
+
+            # 1 single qubit works
+            # povm_i = e_states[qbit_state]
             kron = np.kron(kron, povm_i)
         result = result + (frequencies[state] * kron)
 
+    # n qubits does not work
     return result / (povm_dimension ** (n_qubits - 1))
+
+    # 1 single qubit works
+    # return result * (povm_dimension + 1)
 
 
 # Test to get tr(Ex * rho)

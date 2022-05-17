@@ -1,19 +1,22 @@
 import getopt
-import time
+import json
+import os
 from enum import Enum
 
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+import time
 from qiskit import QuantumCircuit
 from qiskit.providers.aer import AerSimulator
 from qiskit_experiments.library import StateTomography
+
 from src.common.quantum_commons import simulate, getFrequencies
 from src.measurements import sic_povm, pauli
 from src.states.builder import build, get_state_vector, States
 
 
-class ChartType(Enum):
+class ChartType(str, Enum):
     Overlaps = 'overlaps'
     Time = 'time'
 
@@ -30,13 +33,13 @@ def qiskit_tomography(experiment_state, qc_size, shots):
 
 
 def pauli_tomography(experiment_state, qc_size, shots):
-    qc = QuantumCircuit(qc_size, qc_size)
     basis = pauli.getCartesianPauliBasis(qc_size)
     ls_measurements = []
 
     for measurement_schema in basis:
+        qc = QuantumCircuit(qc_size, qc_size)
         w_qc = build(experiment_state, qc, 0, qc_size)
-        pauli.measure_pauli(w_qc, measurement_schema)
+        w_qc = pauli.measure_pauli(w_qc, measurement_schema)
         job = simulate(w_qc, shots)
         counts = job.result().get_counts()
         schema_frequencies = getFrequencies(counts, shots)
@@ -79,6 +82,10 @@ def append_result(results, experiment_state, qc_size, state_overlaps, time_profi
 
 
 def generate_charts(results, chart_type, tomography_type, output_folder):
+    folder = '%s/%s' % (output_folder, chart_type.value)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
     for i, state_key in enumerate(results):
         state = results[state_key]
         legend = []
@@ -94,7 +101,7 @@ def generate_charts(results, chart_type, tomography_type, output_folder):
         if chart_type == ChartType.Overlaps:
             plt.ylabel("O")
         if chart_type == ChartType.Time:
-            plt.ylabel("T")
+            plt.ylabel("$t[ms]$")
         # plt.title(state_key)
         plt.savefig('%s/%s/%s_%s.png' % (output_folder, chart_type.value, state_key.value, tomography_type))
         plt.clf()
@@ -110,8 +117,7 @@ def perform_state_tomography(experiment_state, qc_size, shots, tomography_type):
         density_matrix = sic_tomography(experiment_state, qc_size, shots)
 
     state_vector = get_state_vector(experiment_state, qc_size)
-    overlap = np.sqrt(np.dot(state_vector, np.dot(density_matrix, state_vector.T)))
-    print(overlap)
+    overlap = abs(np.sqrt(np.dot(state_vector, np.dot(density_matrix, state_vector.T))))
     return overlap
     # print('probs: {}'.format(density_matrix.probabilities()))
 
@@ -124,12 +130,21 @@ def experiment(experiment_state, q_bits_range, shots_range, tomography_type, out
         for shots in shots_range:
             print('Performing %s %s experiment with %s qubits and %s shots' % (tomography_type, experiment_state.value, qc_size, shots))
             ts = time.time()
-            state_overlaps[shots] = perform_state_tomography(experiment_state, qc_size, shots, tomography_type)
+            overlap = perform_state_tomography(experiment_state, qc_size, shots, tomography_type)
+            print("Overlap: %s" % overlap)
+            state_overlaps[shots] = overlap
             state_time_profile[shots] = time.time() - ts
             print('Time taken: %s in seconds' % state_time_profile[shots])
 
         append_result(results, experiment_state, qc_size, state_overlaps, state_time_profile)
 
+    # Stores data in a file
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+    with open('%s/%s_results.json' % (output_folder, experiment_state.value), "w") as fp:
+        json.dump(results, fp)
+
+    # Generate charts
     generate_charts(results, ChartType.Overlaps, tomography_type, output_folder)
     generate_charts(results, ChartType.Time, tomography_type, output_folder)
 

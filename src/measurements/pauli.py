@@ -16,11 +16,11 @@ def measure_pauli(qc, measurement_schema):
         measurement = measurement_schema[i]
         debugMeasurement(measurement)
         if measurement == PauliBasis.X:
-            x_measurement(qc, i, i)
+            return x_measurement(qc, i, i)
         elif measurement == PauliBasis.Y:
-            y_measurement(qc, i, i)
+            return y_measurement(qc, i, i)
         elif measurement == PauliBasis.Z:
-            z_measurement(qc, i, i)
+            return z_measurement(qc, i, i)
 
 
 def z_measurement(qc, qubit, cbit):
