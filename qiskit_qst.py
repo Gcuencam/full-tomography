@@ -189,15 +189,15 @@ def main(argv):
     q_bits_range = range(q_bits_lower_limit, q_bits_upper_limit + 1)
     shots_range = range(shots_lower_limit, shots_upper_limit + shots_pace, shots_pace)
 
-    experiment(States.W, q_bits_range, shots_range, 'qiskit', output_folder)
-    experiment(States.GHZ, q_bits_range, shots_range, 'qiskit', output_folder)
+    # experiment(States.W, q_bits_range, shots_range, 'qiskit', output_folder)
+    # experiment(States.GHZ, q_bits_range, shots_range, 'qiskit', output_folder)
     # experiment(States.Plus, q_bits_range, shots_range, 'qiskit', output_folder)
     # experiment(States.W, q_bits_range, shots_range, 'pauli', output_folder)
     # experiment(States.GHZ, q_bits_range, shots_range, 'pauli', output_folder)
     # experiment(States.Plus, q_bits_range, shots_range, 'pauli', output_folder)
-    # experiment(States.W, q_bits_range, shots_range, 'sic', output_folder)
-    # experiment(States.GHZ, q_bits_range, shots_range, 'sic', output_folder)
-    # experiment(States.Plus, q_bits_range, shots_range, 'sic', output_folder)
+    experiment(States.W, q_bits_range, shots_range, 'sic', output_folder)
+    experiment(States.GHZ, q_bits_range, shots_range, 'sic', output_folder)
+    experiment(States.Plus, q_bits_range, shots_range, 'sic', output_folder)
 
 
 if __name__ == '__main__':
