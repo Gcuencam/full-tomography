@@ -103,7 +103,9 @@ def least_square_estimator(povm, frequencies):
         result = result + (frequencies[state] * kron)
 
     # n qubits does not work
-    return result / (povm_dimension ** (n_qubits - 1))
+    #return result / (povm_dimension ** (n_qubits - 1))
+    # change suggested by Gael. d**n instead of 1/(d**(n-1))
+    return result * (povm_dimension ** n_qubits)
 
     # 1 single qubit works
     # return result * (povm_dimension + 1)
